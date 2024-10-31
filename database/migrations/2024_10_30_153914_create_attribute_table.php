@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('colors', function (Blueprint $table) {
-            $table->bigIncrements('col_id');
-            $table->string('col_name',50);
-            $table->tinyInteger('status',0);
+        Schema::create('attribute', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
             $table->timestamps();
         });
     }
@@ -24,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('colors');
+        Schema::dropIfExists('attribute');
     }
 };

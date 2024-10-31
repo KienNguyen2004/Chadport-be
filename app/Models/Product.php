@@ -9,36 +9,41 @@ class Product extends Model
 {
     use HasFactory;
 
+    protected $table = 'products';
+    protected $fillable = [
+        'id',
+        'name',
+        'category_id',
+        'brand_id',
+        'quantity',
+        'price',
+        'price_sale',
+    ];
+
+
     // Relationship
 
     public function Category() {
         return $this->belongsToMany(Category::class);
     }
 
-    public function Color() {
-        return $this->belongsToMany(Color::class);
-    }
 
-    //Image 
-    // public function Image() {
-    //     return $this->abs;
-    // }
-
-    public function Size() {
-        return $this->belongsToMany(Size::class);
+    public function productImage() {
+        return $this->hasMany(ProductImage::class);
     }
 
     public function Brand() {
         return $this->belongsTo(Brand::class);
     }
 
-    public function Wishlist() {
-        return $this->hasMany(Wishlist::class);
-    }
-
     public function Comment() {
         return $this->hasMany(Comment::class);
     }
 
+    public function Variants() {
+        return $this->hasMany(ProductVariant::class);
+    }
 
+
+    
 }

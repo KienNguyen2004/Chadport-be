@@ -52,4 +52,10 @@ class User extends Authenticatable
     public function Order() {
         return $this->hasMany(Order::class);
     }
+
+    public function cart() {
+        return $this->hasOne(Cart::class);
+    }
+
+    
 }
