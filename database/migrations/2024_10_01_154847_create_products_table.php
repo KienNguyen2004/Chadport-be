@@ -12,22 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
-            $table->bigIncrements('pro_id');
-            $table->string('pro_name',50);
-            $table->unsignedBigInteger('cat_id'); 
-            $table->unsignedBigInteger('size_id');
-            $table->unsignedBigInteger('col_id');
+            $table->bigIncrements('id');
+            $table->string('name',50);
+            $table->unsignedBigInteger('category_id'); 
             $table->unsignedBigInteger('brand_id');
-            $table->foreign('cat_id')->references('cat_id')->on('categories')->onDelete('cascade');
-            $table->foreign('size_id')->references('size_id')->on('sizes')->onDelete('cascade');
-            $table->foreign('col_id')->references('col_id')->on('colors')->onDelete('cascade');
-            $table->foreign('brand_id')->references('brand_id')->on('brands')->onDelete('cascade');
-            $table->string('image_product',255)->nullable();
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+            $table->foreign('brand_id')->references('id')->on('brands')->onDelete('cascade');
             $table->integer('quantity');
             $table->float('price',11,2);
             $table->float('price_sale',11,2)->nullable();
-            $table->integer('type')->nullable();
-            $table->tinyInteger('status',0);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('comment', function (Blueprint $table) {
-            $table->bigIncrements('comment_id');
-            $table->unsignedBigInteger('product_id'); 
-            $table->unsignedBigInteger('user_id');
+        Schema::create('product_variants', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->text('content');
-            $table->tinyInteger('rating')->nullable()->default(5);
+            $table->decimal('price', 10, 2);
+            $table->integer('stock');
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('comment');
+        Schema::dropIfExists('product_variants');
     }
 };

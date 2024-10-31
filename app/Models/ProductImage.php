@@ -5,11 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Wishlist extends Model
+class ProductImage extends Model
 {
     use HasFactory;
 
-    public function Product() {
+
+    protected $table = 'product_images';
+    protected $fillable = [
+        'id',
+        'product_id',
+        'image',
+    ];
+
+
+    public function product()
+    {
         return $this->belongsTo(Product::class);
     }
 }

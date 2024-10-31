@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('banner', function (Blueprint $table) {
-            $table->bigIncrements('banner_id');
-            $table->string('banner_name',50);
-            $table->string('banner_titler',100);
-            $table->integer('banner_type');
-            $table->tinyInteger('status',0);
+        Schema::create('cart', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->enum('status', ['đang sử dụng', 'đã thanh toán'])->default('đang sử dụng');
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('banner');
+        Schema::dropIfExists('cart');
     }
 };

@@ -9,6 +9,16 @@ class Voucher extends Model
 {
     use HasFactory;
 
+    protected $table = 'voucher';
+    protected $fillable = [
+        'id',
+        'code',
+        'discount_type',
+        'discount_value',
+        'expires_at',
+        'usage_limit',
+        'used_count',
+    ];
 
     public function Order() {
         return $this->hasOne(Order::class);
