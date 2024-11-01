@@ -2,6 +2,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
@@ -11,6 +12,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 >>>>>>> e8a8fe2 (Auth Admin)
 use App\Http\Controllers\Api\CategoryController;
+=======
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+>>>>>>> a50d287 (Auth Admin)
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
@@ -32,7 +37,21 @@ Route::group(['prefix' => 'admin'], function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
         Route::post('/register', [AuthController::class, 'register']);
+<<<<<<< HEAD
     });
+=======
+    });  
+});
+
+// Group user routes
+Route::group(['prefix' => 'user'], function () {
+    Route::post('/login', [UserController::class, 'login']);
+    Route::group(['middleware' => ['auth:api', 'check.user.role']], function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/refresh', [AuthController::class, 'refresh']);
+        Route::post('/register', [AuthController::class, 'register']);
+    });  
+>>>>>>> a50d287 (Auth Admin)
 });
 
 // Group user routes
