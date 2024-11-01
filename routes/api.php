@@ -32,9 +32,10 @@ Route::group(['prefix' => 'user'], function () {
     Route::post('/login', [UserController::class, 'login']);
     Route::post('/register', [UserController::class, 'register']);
     Route::get('/activate-account/{user_id}/{token}', [UserController::class, 'activateAccount'])->name('activate-account');
-    Route::group(['middleware' => ['auth:api', 'check.user.role']], function () {
+    Route::group(['middleware' => ['auth:api']], function () {
         Route::post('/logout', [UserController::class, 'logout']);
         Route::post('/refresh', [UserController::class, 'refresh']);
+        Route::post('/update', [UserController::class, 'update']); 
     });
 });
 
