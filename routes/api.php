@@ -1,10 +1,15 @@
 <?php
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 >>>>>>> 65f3f59 (update code)
+=======
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+>>>>>>> e8a8fe2 (Auth Admin)
 use App\Http\Controllers\Api\CategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -39,7 +44,6 @@ Route::group(['prefix' => 'user'], function () {
         Route::post('/register', [AuthController::class, 'register']);
     });
 });
-<<<<<<< HEAD
 Route::post('products', [ProductController::class, 'create'])->name('products.index');
 // Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
 // Route::post('products', [ProductController::class, 'store'])->name('products.store');
@@ -48,7 +52,10 @@ Route::post('products', [ProductController::class, 'create'])->name('products.in
 <<<<<<< HEAD
 =======
 Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
+<<<<<<< HEAD
 >>>>>>> 4dc19ff559d11a13cbe8b4d8e3c17cc56c0fbd3f
 =======
 Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
 >>>>>>> 65f3f59 (update code)
+=======
+>>>>>>> e8a8fe2 (Auth Admin)
