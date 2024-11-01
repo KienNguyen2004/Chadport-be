@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\LoginRequest;
 use App\Http\Requests\Api\RegisterRequest;
+use App\Http\Requests\Api\UpdateUserRequest;
 use App\Mail\RegisterUserMail;
 use App\Models\User;
+use App\Traits\ImageUploadTrait;
 use Exception;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -14,10 +16,14 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
-
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
 class UserController extends Controller
 {
+
+    use ImageUploadTrait;
+
     public function __construct(Request $request)
     {
         $this->middleware('auth:api')->only(['logout', 'refresh']);
@@ -112,7 +118,100 @@ class UserController extends Controller
     
         return response()->json(['message' => 'Account activated successfully!'], 200);
     }
+
+    public function logout(Request $request)
+    {
+        try {
+            $request->user()->tokens()->delete();
+
+            return response()->json([
+                'message' => 'Successfully logged out',
+            ], 200);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Could not log out',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function refresh()
+    {
+        try {
+            $token = auth()->getToken();
     
+            if (!$token) {
+                return response()->json([
+                    'error' => 'Token not provided',
+                ], 400);
+            }
     
+            JWTAuth::setToken($token);
     
+            // Refresh token
+            $newToken = JWTAuth::refresh($token);
+    
+            return response()->json([
+                'message' => 'Token refreshed successfully',
+                'token' => $newToken
+            ], 200);
+    
+        } catch (TokenExpiredException $e) {
+            return response()->json([
+                'error' => 'Token has expired',
+                'message' => $e->getMessage()
+            ], 401);
+    
+        } catch (TokenInvalidException $e) {
+            return response()->json([
+                'error' => 'Token is invalid',
+                'message' => $e->getMessage()
+            ], 401);
+    
+        } catch (JWTException $e) {
+            return response()->json([
+                'error' => 'Could not refresh token',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    } 
+
+
+    public function update(UpdateUserRequest $request)  
+    {
+        try {
+            if (auth()->user()->user_id == $request->id) {
+                $user = User::findOrFail($request->id);
+    
+                $user->fill($request->only([
+                    'first_name',
+                    'last_name',
+                    'gender',
+                    'birthday',
+                    'address',
+                    'phone_number'
+                ]));
+    
+                if ($request->hasFile('image_user')) {
+                    $data = $this->handleUploadImage($request, 'image_user', 'avt_image');
+                    if ($data) {
+                        $user->image_user = $data;
+                    } 
+                }
+    
+                $user->save();
+    
+                return response()->json(['message' => 'User information updated successfully', 'user' => $user], 200);
+            } else {
+                return response()->json(['error' => 'Unauthorized action'], 403);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'Could not update user information',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+ 
 }
