@@ -22,4 +22,7 @@ class ProductController extends Controller
             'data' =>  $db 
         ], 200);
     }
+
+
+    
 }
