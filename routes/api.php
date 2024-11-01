@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
@@ -30,10 +30,11 @@ Route::group(['prefix' => 'admin'], function () {
 // Group user routes
 Route::group(['prefix' => 'user'], function () {
     Route::post('/login', [UserController::class, 'login']);
+    Route::post('/register', [UserController::class, 'register']);
+    Route::get('/activate-account/{user_id}/{token}', [UserController::class, 'activateAccount'])->name('activate-account');
     Route::group(['middleware' => ['auth:api', 'check.user.role']], function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::post('/refresh', [AuthController::class, 'refresh']);
-        Route::post('/register', [AuthController::class, 'register']);
+        Route::post('/logout', [UserController::class, 'logout']);
+        Route::post('/refresh', [UserController::class, 'refresh']);
     });
 });
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin;
+namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -24,7 +24,7 @@ class RegisterRequest extends FormRequest
         return [
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
-            'role_id' => 'required|integer|between:1,3',
+            'phone_number' => 'required|regex:/(0)[0-9]/|not_regex:/[a-z]/|min:9|unique:users,phone_number'
         ];
     }
 }
