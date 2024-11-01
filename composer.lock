@@ -3322,6 +3322,7 @@
             "name": "stella-maris/clock",
             "version": "0.1.7",
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
             "source": {
                 "type": "git",
@@ -3371,6 +3372,8 @@
             "name": "symfony/console",
             "version": "v6.4.12",
 >>>>>>> a50d287 (Auth Admin)
+=======
+>>>>>>> e8a8fe2 (Auth Admin)
             "source": {
                 "type": "git",
                 "url": "https://github.com/stella-maris-solutions/clock.git",
