@@ -11,26 +11,29 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-           // Duy trì cột `category_id` làm khóa ngoại liên kết với `categories`
-            $table->unsignedBigInteger('cat_id')->nullable()->change(); // Đảm bảo `cat_id` có thể null nếu cần
+        Schema::create('products', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('cat_id')->nullable(); // Tạo cột cat_id trước
+
+            // Sau khi tạo cột cat_id, thêm khóa ngoại
             $table->foreign('cat_id')->references('id')->on('categories')->onDelete('cascade');
 
-            $table->string('title')->nullable(); // Cột title
-            $table->string('name', 255)->nullable(); // Cột name
-            $table->string('status')->default('active'); // Cột status
-            $table->unsignedBigInteger('col_id')->nullable(); // Cột col_id
-            $table->unsignedBigInteger('size_id')->nullable(); // Cột size_id
-            $table->unsignedBigInteger('brand_id')->nullable(); // Cột brand_id
-            $table->text('description')->nullable(); // Cột description
-            $table->string('image_product')->nullable(); // Cột image_product
-            $table->json('image_description')->nullable(); // Cột image_description dạng JSON
-            $table->float('price', 11, 2)->nullable(); // Cột price
-            $table->float('price_sale', 11, 2)->nullable(); // Cột price_sale
-            $table->string('type')->nullable(); // Cột type
+            $table->string('title')->nullable(); 
+            $table->string('name', 255)->nullable(); 
+            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->unsignedBigInteger('col_id')->nullable(); 
+            $table->unsignedBigInteger('size_id')->nullable();
+            $table->unsignedBigInteger('brand_id')->nullable(); 
+            $table->text('description')->nullable();
+            $table->integer('quantity')->default(0);
+            $table->string('image_product')->nullable(); 
+            $table->json('image_description')->nullable(); 
+            $table->float('price', 11, 2)->nullable(); 
+            $table->float('price_sale', 11, 2)->nullable(); 
+            $table->string('type')->nullable(); 
             $table->timestamps();
-            $table->string('size')->nullable(); // Cột size lưu chuỗi cho lựa chọn kích thước
-            $table->string('color')->nullable(); // Cột color lưu chuỗi cho lựa chọn màu sắc
+            $table->string('size')->nullable(); 
+            $table->string('color')->nullable(); 
 
             // Thêm khóa ngoại cho các cột mới nếu cần thiết
             // $table->foreign('col_id')->references('id')->on('colors')->onDelete('cascade');
