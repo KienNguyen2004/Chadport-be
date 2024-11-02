@@ -25,7 +25,11 @@ class Product extends Model
         'type',
         'status',
         'price',
-        'price_sale',
+        'type',
+        'created_at',
+        'updated_at',
+        'size',
+        'color',
     ];
 
 
