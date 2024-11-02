@@ -45,7 +45,7 @@ class UserController extends Controller
 
             $user = User::create($userData);
 
-            $activationLink = route('activate-account', ['user_id' => $user->user_id, 'token' => $activationToken]);
+            $activationLink = route('activate-account', ['user_id' => $user->user_id, 'token' => $activationToken]);  // send main\l --> PT SMTP laravel | hhtps
 
             Cache::put('activation_token_' . $user->id, $activationToken, now()->addDay());
 

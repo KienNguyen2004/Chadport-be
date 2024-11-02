@@ -17,7 +17,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class AuthController extends Controller
 {
     public function __construct() {
-        $this->middleware('auth:api', ['except' => ['logout', 'register', 'refresh']]);
+        $this->middleware('auth:api', ['except' => ['login']]);
     }
 
     public function register(RegisterRequest $request)
@@ -100,7 +100,7 @@ class AuthController extends Controller
                 ], 400);
             }
     
-            JWTAuth::setToken($token);
+            JWTAuth::setToken($token);  // khởi tạo phiên token trong jwt --> để jwwt biết phiên token này đã đã hoạt động 
     
             // Refresh token
             $newToken = JWTAuth::refresh($token);
