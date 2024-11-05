@@ -9,13 +9,21 @@ class Product extends Model
 {
     use HasFactory;
 
+
     protected $table = 'products';
+    protected $primaryKey = 'pro_id';
+
     protected $fillable = [
-        'id',
-        'name',
-        'category_id',
+        'pro_id',
+        'pro_name',
+        'cat_id',
         'brand_id',
+        'size_id',
+        'col_id',
+        'image_product',
         'quantity',
+        'type',
+        'status',
         'price',
         'price_sale',
     ];
