@@ -13,7 +13,8 @@ class Category extends Model
     protected $fillable = [
         'id',
         'name',
-        'description',
+        'status',
+        'imageURL'
     ];
 
     //  Relationship
