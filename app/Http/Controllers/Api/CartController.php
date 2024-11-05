@@ -45,6 +45,7 @@ class CartController extends Controller
                     if ($quantity <= $dataProduct->quantity) {
                         $cart[$key]['product_quantity'] = $quantity;
                         $cart[$key]['cart_amount_sale'] = $cart[$key]['cart_price_sale'] ? $cart[$key]['cart_price_sale'] * $quantity : $cart[$key]['cart_price'] * $quantity;
+                        $cart[$key]['cart_amount'] = $cart[$key]['cart_price'] * $quantity;
                     } else {
                         return response()->json(['message' => 'Số lượng sản phẩm đã đến mức tối đa. Bạn không thể thêm vào giỏ nữa'], 400);
                     }
@@ -69,11 +70,11 @@ class CartController extends Controller
                 }
             }
 
-            $total_cart = collect($cart)->sum('cart_amount_sale');
 
             \Session::put('cart', $cart);
-            \Session::put('total_cart', $total_cart);
             \Session::save();
+
+            $total_cart = \Session::get('total_cart');
 
             return response()->json(['message' => 'Thêm sản phẩm vào giỏ hàng thành công', 'cart' => $cart, 'total_cart' => $total_cart], 200);
         } catch (\Exception $e) {
@@ -107,6 +108,7 @@ class CartController extends Controller
                 }
             }
             \Session::put('cart', $this->cart);
+            \Session::save();
             $this->updateTotalPrice();
 
             return $this->get_cart();
