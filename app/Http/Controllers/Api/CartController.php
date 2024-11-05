@@ -69,11 +69,12 @@ class CartController extends Controller
                 }
             }
 
-            $total_cart = collect($cart)->sum('cart_amount_sale');
 
             \Session::put('cart', $cart);
-            \Session::put('total_cart', $total_cart);
             \Session::save();
+
+            $total_cart = \Session::get('total_cart');
+            
 
             return response()->json(['message' => 'Thêm sản phẩm vào giỏ hàng thành công', 'cart' => $cart, 'total_cart' => $total_cart], 200);
         } catch (\Exception $e) {
