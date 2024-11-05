@@ -75,6 +75,7 @@ class CartController extends Controller
             \Session::save();
 
             $total_cart = \Session::get('total_cart');
+            
 
             return response()->json(['message' => 'Thêm sản phẩm vào giỏ hàng thành công', 'cart' => $cart, 'total_cart' => $total_cart], 200);
         } catch (\Exception $e) {
