@@ -8,16 +8,6 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
 // Group admin routes
 Route::group(['prefix' => 'admin'], function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -54,7 +44,11 @@ Route::group(['prefix' => 'user'], function () {
 });
 
 // Product routes
-Route::post('products', [ProductController::class, 'create'])->name('products.index');
+Route::post('add/products', [ProductController::class, 'createProducts'])->name('products.index');
 
 // Category routes
-Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
+Route::post('categories', [CategoryController::class, 'creates'])->name('categories.creates');
+Route::get('/categories/{id}', [CategoryController::class, 'show']);
+Route::get('categories', [CategoryController::class, 'GetAll'])->name('categories.GetAll');
+Route::put('categories/{id}', [CategoryController::class, 'updates'])->name('categories.updates');
+Route::delete('categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
