@@ -69,14 +69,12 @@ class CartController extends Controller
                 }
             }
 
-
+            $this->updateTotalPrice();
             \Session::put('cart', $cart);
+
             \Session::save();
-
-            $total_cart = \Session::get('total_cart');
             
-
-            return response()->json(['message' => 'Thêm sản phẩm vào giỏ hàng thành công', 'cart' => $cart, 'total_cart' => $total_cart], 200);
+            return response()->json(['message' => 'Thêm sản phẩm vào giỏ hàng thành công', 'cart' => $cart], 200);
         } catch (\Exception $e) {
             Log::error('Error adding product to cart: ' . $e->getMessage());
 
@@ -87,10 +85,10 @@ class CartController extends Controller
 
     public function get_cart()
     {
+        $this->updateTotalPrice();
         $data_cart = \Session::get('cart', []);
         $total_cart = \Session::get('total_cart', []);
         $total_voucher_cart = \Session::get('total_voucher_cart', []);
-        $this->updateTotalPrice();
         return response()->json([
             'message' => 'Giỏ hàng khách hàng.',
             'cart' => $data_cart,
@@ -246,6 +244,7 @@ class CartController extends Controller
             ->where('user_id', auth()->user()->user_id)
             ->exists();
 
+            dd($check_user_voucher_exists);
         if ($check_user_voucher_exists) {
             return response()->json([
                 'message' => 'Bạn đã sử dụng voucher này rồi',
@@ -303,7 +302,14 @@ class CartController extends Controller
 
     public function updateTotalPrice()
     {
-        $total_cart = round(collect($this->cart)->sum('cart_amount_sale'),2);
+        $total_cart = round(
+            collect($this->cart)
+                ->filter(function($item) {
+                    return isset($item['cart_amount_sale']) && is_numeric($item['cart_amount_sale']);
+                })
+                ->sum('cart_amount_sale'), 
+            2
+        );
         \Session::put('total_cart', $total_cart);
         \Session::save();
     }
