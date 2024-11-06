@@ -40,7 +40,7 @@ Route::group(['prefix' => 'user'], function () {
         Route::post('/add-coupon-cart', [CartController::class, 'addCouponCart']);
         Route::post('/payment', [CartController::class, 'payment']);
         Route::post('/remove-voucher', [CartController::class, 'removeVoucher']);
-    });
+    }); 
 });
 
 // Product routes
