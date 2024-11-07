@@ -26,8 +26,14 @@ class Product extends Model
         'image_product',
         'image_description', // Thêm trường image_description để lưu JSON các ảnh mô tả
         'price',
+<<<<<<< HEAD
         'price_sale',
         'type',
+=======
+        'type',
+        'created_at',
+        'updated_at',
+>>>>>>> 151185caf7c297a300ad47a7ac5b7f4cd6300fec
         'size',
         'color',
     ];
