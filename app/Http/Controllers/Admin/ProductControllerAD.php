@@ -7,7 +7,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Exception;
 
-class ProductController extends Controller
+class ProductControllerAD extends Controller
 {
     public function index(Request $request)
     {

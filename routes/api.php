@@ -1,13 +1,13 @@
 <?php
 
-use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductControllerAD;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\ProductControllers;
 // Group admin routes
 Route::group(['prefix' => 'admin'], function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -18,7 +18,7 @@ Route::group(['prefix' => 'admin'], function () {
 
 
         Route::group(['prefix' => 'product'], function () {
-            Route::get('/index', [ProductController::class, 'index']);
+            Route::get('/index', [ProductControllerAD::class, 'index']);
         });
     });
 });
@@ -44,7 +44,11 @@ Route::group(['prefix' => 'user'], function () {
 });
 
 // Product routes
-Route::post('add/products', [ProductController::class, 'createProducts'])->name('products.index');
+Route::post('add/products', [ProductControllers::class, 'createProducts']);
+Route::get('list/products', [ProductControllers::class, 'showProduct']);
+Route::get('showdetail/products/{id}', [ProductControllers::class, 'showDetail']);
+Route::delete('delete/products/{id}', [ProductControllers::class, 'destroy']);
+Route::post('update/products/{id}', [ProductControllers::class, 'updateProduct']);
 
 // Category routes
 Route::post('categories', [CategoryController::class, 'creates'])->name('categories.creates');

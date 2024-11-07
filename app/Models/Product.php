@@ -11,21 +11,25 @@ class Product extends Model
 
 
     protected $table = 'products';
-    protected $primaryKey = 'pro_id';
+    protected $primaryKey = 'id';
 
     protected $fillable = [
-        'pro_id',
-        'pro_name',
         'cat_id',
-        'brand_id',
-        'size_id',
-        'col_id',
-        'image_product',
-        'quantity',
-        'type',
+        'title',
+        'name',
         'status',
+        'col_id',
+        'size_id',
+        'brand_id',
+        'description',
+        'quantity',
+        'image_product',
+        'image_description', // Thêm trường image_description để lưu JSON các ảnh mô tả
         'price',
         'price_sale',
+        'type',
+        'size',
+        'color',
     ];
 
 
