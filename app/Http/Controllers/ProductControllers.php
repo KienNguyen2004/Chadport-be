@@ -179,4 +179,21 @@ class ProductControllers extends Controller
         }
     }
     
+    public function getProductsByCategory($cat_id)
+    {
+        // Lấy tất cả sản phẩm theo danh mục
+        $products = Product::where('cat_id', $cat_id)->get();
+
+        // Kiểm tra nếu không có sản phẩm nào
+        if ($products->isEmpty()) {
+            return response()->json(['message' => 'No products found in this category'], 404);
+        }
+
+        // Trả về danh sách sản phẩm dưới dạng JSON
+        return response()->json([
+            'data' => $products
+        ], 200);
+    }
+
+
 }

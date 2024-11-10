@@ -27,9 +27,9 @@ class AuthController extends Controller
                 'email' => $request->input('email'),
                 'password' => bcrypt($request->input('password')),
                 'role_id' => $request->input('role_id'),
-                'status' => 1
+                'status' =>'inactive'
             ];
-
+            dd($userData);
             $user = User::create($userData);
 
             return response()->json([

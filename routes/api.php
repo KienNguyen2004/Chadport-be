@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductControllers;
+use App\Http\Controllers\CommentsController;
+
 // Group admin routes
 Route::group(['prefix' => 'admin'], function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -49,6 +51,7 @@ Route::get('list/products', [ProductControllers::class, 'showProduct']);
 Route::get('showdetail/products/{id}', [ProductControllers::class, 'showDetail']);
 Route::delete('delete/products/{id}', [ProductControllers::class, 'destroy']);
 Route::post('update/products/{id}', [ProductControllers::class, 'updateProduct']);
+Route::get('/products/category/{cat_id}', [ProductControllers::class, 'getProductsByCategory']);
 
 // Category routes
 Route::post('categories', [CategoryController::class, 'creates'])->name('categories.creates');
@@ -56,3 +59,10 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']);
 Route::get('categories', [CategoryController::class, 'GetAll'])->name('categories.GetAll');
 Route::put('categories/{id}', [CategoryController::class, 'updates'])->name('categories.updates');
 Route::delete('categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+
+// comments routes
+Route::post('add/comments', [CommentsController::class, 'createComments']);
+Route::get('getall/comments/{product_id}', [CommentsController::class, 'getCommentsByProduct']);
+Route::delete('delete/comments/{comment_id}', [CommentsController::class, 'deleteComment']);
+  

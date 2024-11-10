@@ -16,6 +16,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
@@ -40,16 +41,16 @@ class UserController extends Controller
                 'password' => bcrypt($request->input('password')),
                 'phone_nuber' => $request->input('phone_nuber'),
                 'role_id' => 4,
-                'status' => 0
+                'status' => "active"
             ];
 
             $user = User::create($userData);
 
-            $activationLink = route('activate-account', ['user_id' => $user->user_id, 'token' => $activationToken]);  // send main\l --> PT SMTP laravel | hhtps
+            // $activationLink = route('activate-account', ['user_id' => $user->user_id, 'token' => $activationToken]);  // send main\l --> PT SMTP laravel | hhtps
 
-            Cache::put('activation_token_' . $user->id, $activationToken, now()->addDay());
+            // Cache::put('activation_token_' . $user->id, $activationToken, now()->addDay());
 
-            Mail::to($user->email)->send(new RegisterUserMail($user, $activationLink));
+            // Mail::to($user->email)->send(new RegisterUserMail($user, $activationLink));
 
             return response()->json([
                 'message' => 'Successfully created user',
@@ -66,16 +67,27 @@ class UserController extends Controller
         }
     }
 
+    // function login này có xác minh nhưng chưa dùng tới 
     public function login(LoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
     
         try {
             $user = User::where('email', $credentials['email'])->first();
-            if (!$user || $user->status != 1) {
-                return response()->json(['error' => 'Account is not verified.'], 403);
-            }
-    
+            
+            // dd('User ID: ' . $user->id);
+            // if (!$user || $user->status != 1) {
+            //     return response()->json(['error' => 'Account is not verified.'], 403);
+            // }
+
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+                }
+
+            // Nếu JWTAuth không thiết lập đúng `subject`, có thể truyền vào theo cách thủ công:
+            JWTAuth::factory()->setTTL(60); // Đặt thời gian sống của token (tuỳ chỉnh theo nhu cầu)
+            $token = JWTAuth::claims(['sub' => $user->id])->attempt($credentials);
+
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'Invalid Credentials'], 401);
             }
@@ -139,7 +151,8 @@ class UserController extends Controller
     public function refresh()
     {
         try {
-            $token = auth()->getToken();
+            $token = JWTAuth::getToken();
+
     
             if (!$token) {
                 return response()->json([
@@ -177,7 +190,6 @@ class UserController extends Controller
         }
     } 
 
-
     public function update(UpdateUserRequest $request)  
     {
         try {
@@ -213,5 +225,5 @@ class UserController extends Controller
             ], 500);
         }
     }
- 
+
 }
