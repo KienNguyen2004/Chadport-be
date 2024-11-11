@@ -39,7 +39,8 @@ class UserController extends Controller
             $userData = [
                 'email' => $request->input('email'),
                 'password' => bcrypt($request->input('password')),
-                'phone_nuber' => $request->input('phone_nuber'),
+                'firt_name' => $request->input('firt_name'),
+                'last_name' => $request->input('last_name'),
                 'role_id' => 4,
                 'status' => "active"
             ];
@@ -93,9 +94,17 @@ class UserController extends Controller
             }
     
             return response()->json([
-                'message' => 'Successfully logged in',
-                'token' => $token
-            ], 200);
+                'message' => 'Successfully logged in'
+            ], 200)->cookie(
+                'jwt_token', // Tên cookie
+                $token, // Token JWT
+                60, // Thời gian sống của cookie
+                null,
+                null,
+                true, // Sử dụng cookie bảo mật chỉ cho HTTPS
+                true // HttpOnly để tránh truy cập từ JS
+            );
+            
     
         } catch (JWTException $e) {
             return response()->json([

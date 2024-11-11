@@ -12,19 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('comment', function (Blueprint $table) {
-            $table->boolean('reported')->default(false); // Đánh dấu báo cáo
+            $table->dropColumn(['like_count', 'dislike_count']);
         });
     }
 
     /**
      * Reverse the migrations.
-    */
+     */
     public function down(): void
     {
         Schema::table('comment', function (Blueprint $table) {
-            $table->dropColumn('like_count');
-            $table->dropColumn('dislike_count');
-            $table->dropColumn('reported');
+            $table->integer('like_count')->default(0);
+            $table->integer('dislike_count')->default(0);
         });
     }
 };
