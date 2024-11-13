@@ -72,40 +72,49 @@ class UserController extends Controller
     public function login(LoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
-    
+
         try {
             $user = User::where('email', $credentials['email'])->first();
-            
-            // dd('User ID: ' . $user->id);
-            // if (!$user || $user->status != 1) {
-            //     return response()->json(['error' => 'Account is not verified.'], 403);
-            // }
 
             if (!$user) {
                 return response()->json(['error' => 'User not found'], 404);
-                }
+            }
 
-            // Nếu JWTAuth không thiết lập đúng `subject`, có thể truyền vào theo cách thủ công:
-            JWTAuth::factory()->setTTL(60); // Đặt thời gian sống của token (tuỳ chỉnh theo nhu cầu)
+            // Kiểm tra thông tin đăng nhập và tạo token
+            JWTAuth::factory()->setTTL(60); // Đặt thời gian sống của token
             $token = JWTAuth::claims(['sub' => $user->id])->attempt($credentials);
 
-            if (!$token = JWTAuth::attempt($credentials)) {
+            if (!$token) {
                 return response()->json(['error' => 'Invalid Credentials'], 401);
             }
-    
+
+            // Trả về thông tin người dùng cùng token
             return response()->json([
-                'message' => 'Successfully logged in'
+                'message' => 'Successfully logged in',
+                'data' => [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    'role_id' => $user->role_id,
+                    'status' => $user->status,
+                    'firt_name' => $user->firt_name,
+                    'last_name' => $user->last_name,
+                    'gender' => $user->gender,
+                    'birthday' => $user->birthday,
+                    'address' => $user->address,
+                    'image_user' => $user->image_user, // Trường ảnh người dùng
+                    'phone_number' => $user->phone_number,
+                ],
+                'token' => $token
             ], 200)->cookie(
-                'jwt_token', // Tên cookie
-                $token, // Token JWT
+                'jwt_token',
+                $token,
                 60, // Thời gian sống của cookie
                 null,
                 null,
-                true, // Sử dụng cookie bảo mật chỉ cho HTTPS
-                true // HttpOnly để tránh truy cập từ JS
+                true,
+                true
             );
-            
-    
+
         } catch (JWTException $e) {
             return response()->json([
                 'error' => 'Could not create token',
@@ -118,6 +127,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
     public function activateAccount($user_id, $token)
     {
@@ -234,5 +244,36 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+    public function getProfile()
+    {
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return response()->json(['error' => 'User not authenticated'], 401);
+            }
+
+            return response()->json([
+                'message' => 'User profile retrieved successfully',
+                'data' => [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    'role_id' => $user->role_id,
+                    'status' => $user->status,
+                    'firt_name' => $user->firt_name,
+                    'last_name' => $user->last_name,
+                    'gender' => $user->gender,
+                    'birthday' => $user->birthday,
+                    'address' => $user->address,
+                    'image_user' => $user->image_user,
+                    'phone_number' => $user->phone_number,
+                ],
+            ], 200);
+
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Could not retrieve user profile', 'message' => $e->getMessage()], 500);
+        }
+    }
+
 
 }

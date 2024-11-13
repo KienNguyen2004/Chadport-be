@@ -29,6 +29,7 @@ Route::group(['prefix' => 'admin'], function () {
 Route::group(['prefix' => 'user'], function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
+    Route::get('/profile', [UserController::class, 'getProfile'])->middleware('auth:api');
     Route::get('/activate-account/{user_id}/{token}', [UserController::class, 'activateAccount'])->name('activate-account');
     Route::group(['middleware' => ['api', 'auth:api']], function () {
         Route::post('/logout', [UserController::class, 'logout']);
