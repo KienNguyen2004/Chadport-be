@@ -22,13 +22,13 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => 'nullable|string|max:20',
+            'firt_name' => 'nullable|string|max:20',
             'last_name' => 'nullable|string|max:20',
             'gender' => 'nullable|integer',
             'birthday' => 'nullable|date',
             'address' => 'nullable|string|max:255',
             'image_user' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'phone_number' => 'nullable|string|unique:users,phone_number,' . $this->input('id') . ',user_id',
+            'phone_number' => 'nullable|string|unique:users,phone_number,' . auth()->id() . ',id',
         ];
     } 
     

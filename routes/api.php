@@ -29,12 +29,13 @@ Route::group(['prefix' => 'admin'], function () {
 Route::group(['prefix' => 'user'], function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
-    Route::get('/profile', [UserController::class, 'getProfile'])->middleware('auth:api');
+    
+    Route::get('/profile', [UserController::class, 'getProfile'])->middleware(['jwt.cookie', 'auth:api']);
     Route::get('/activate-account/{user_id}/{token}', [UserController::class, 'activateAccount'])->name('activate-account');
     Route::group(['middleware' => ['api', 'auth:api']], function () {
+        Route::post('/update', [UserController::class, 'update']); 
         Route::post('/logout', [UserController::class, 'logout']);
         Route::post('/refresh', [UserController::class, 'refresh']);
-        Route::post('/update', [UserController::class, 'update']); 
         Route::post('/add_to_cart', [CartController::class, 'add_to_cart']);
         Route::get('/cart', [CartController::class, 'get_cart']);
         Route::post('/delete_product_cart', [CartController::class, 'deleteProductCart']);

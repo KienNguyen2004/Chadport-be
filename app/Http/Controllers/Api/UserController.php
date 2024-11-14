@@ -87,7 +87,7 @@ class UserController extends Controller
             if (!$token) {
                 return response()->json(['error' => 'Invalid Credentials'], 401);
             }
-
+            // dd($token);
             // Trả về thông tin người dùng cùng token
             return response()->json([
                 'message' => 'Successfully logged in',
@@ -109,10 +109,10 @@ class UserController extends Controller
                 'jwt_token',
                 $token,
                 60, // Thời gian sống của cookie
-                null,
-                null,
-                true,
-                true
+                '/',       // Đường dẫn của cookie
+                null,      // Domain của cookie, có thể đặt thành null để dùng domain mặc định
+                false,     // Đặt là false nếu bạn đang dùng HTTP (phát triển cục bộ)
+                true       // HTTP-only
             );
 
         } catch (JWTException $e) {
@@ -209,34 +209,41 @@ class UserController extends Controller
         }
     } 
 
-    public function update(UpdateUserRequest $request)  
+    public function update(UpdateUserRequest $request)
     {
         try {
-            if (auth()->user()->user_id == $request->id) {
-                $user = User::findOrFail($request->id);
-    
-                $user->fill($request->only([
-                    'first_name',
-                    'last_name',
-                    'gender',
-                    'birthday',
-                    'address',
-                    'phone_number'
-                ]));
-    
-                if ($request->hasFile('image_user')) {
-                    $data = $this->handleUploadImage($request, 'image_user', 'avt_image');
-                    if ($data) {
-                        $user->image_user = $data;
-                    } 
-                }
-    
-                $user->save();
-    
-                return response()->json(['message' => 'User information updated successfully', 'user' => $user], 200);
-            } else {
-                return response()->json(['error' => 'Unauthorized action'], 403);
+            // Lấy người dùng hiện tại từ token xác thực
+            $user = auth()->user();
+
+            // Chuẩn bị dữ liệu cần cập nhật
+            $updateData = [
+             
+                'gender' => $request->input('gender'),
+                'birthday' => $request->input('birthday'),
+                'address' => $request->input('address'),
+            ];
+
+            // Kiểm tra và cập nhật số điện thoại nếu người dùng nhập số mới
+            if ($request->filled('phone_number') && $request->input('phone_number') !== $user->phone_number) {
+                $updateData['phone_number'] = $request->input('phone_number');
             }
+
+            // Kiểm tra và xử lý ảnh nếu có
+            if ($request->hasFile('image_user')) {
+                $data = $this->handleUploadImage($request, 'image_user', 'avt_image');
+                if ($data) {
+                    $updateData['image_user'] = $data;
+                }
+            }
+
+            // Cập nhật dữ liệu một lần
+            User::where('id', $user->id)->update($updateData);
+
+            // Tải lại thông tin người dùng sau khi cập nhật
+            $user = User::find($user->id);
+
+            return response()->json(['message' => 'User information updated successfully', 'user' => $user], 200);
+
         } catch (Exception $e) {
             return response()->json([
                 'error' => 'Could not update user information',
@@ -244,6 +251,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
     public function getProfile()
     {

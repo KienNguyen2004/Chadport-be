@@ -13,7 +13,7 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $primaryKey = 'user_id';
+    protected $primaryKey = 'id';
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
