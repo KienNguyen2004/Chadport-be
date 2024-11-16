@@ -77,7 +77,7 @@ class ProductControllers extends Controller
 
     public function showProduct(Request $request)
     {
-        // Xác định số lượng sản phẩm hiển thị trên mỗi trang
+        // Số lượng sản phẩm hiển thị trên mỗi trang
         $perPage = 10;
 
         // Sử dụng phân trang Laravel với số lượng sản phẩm trên mỗi trang là $perPage
