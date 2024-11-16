@@ -10,17 +10,20 @@ class Comment extends Model
     use HasFactory;
 
     protected $table = 'comment';
+    
     protected $fillable = [
-        'comment_id',
         'product_id',
         'user_id',
         'content',
         'rating',
+        'like_count',
+        'dislike_count',
+        'reported',
     ];
 
     //  Relationship
     public function User() {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'user_id', 'id');
     }
 
     public function product() {

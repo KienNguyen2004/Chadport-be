@@ -16,6 +16,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
@@ -38,18 +39,19 @@ class UserController extends Controller
             $userData = [
                 'email' => $request->input('email'),
                 'password' => bcrypt($request->input('password')),
-                'phone_nuber' => $request->input('phone_nuber'),
+                'firt_name' => $request->input('firt_name'),
+                'last_name' => $request->input('last_name'),
                 'role_id' => 4,
-                'status' => 0
+                'status' => "active"
             ];
 
             $user = User::create($userData);
 
-            $activationLink = route('activate-account', ['user_id' => $user->user_id, 'token' => $activationToken]);  // send main\l --> PT SMTP laravel | hhtps
+            // $activationLink = route('activate-account', ['user_id' => $user->user_id, 'token' => $activationToken]);  // send main\l --> PT SMTP laravel | hhtps
 
-            Cache::put('activation_token_' . $user->id, $activationToken, now()->addDay());
+            // Cache::put('activation_token_' . $user->id, $activationToken, now()->addDay());
 
-            Mail::to($user->email)->send(new RegisterUserMail($user, $activationLink));
+            // Mail::to($user->email)->send(new RegisterUserMail($user, $activationLink));
 
             return response()->json([
                 'message' => 'Successfully created user',
@@ -66,25 +68,53 @@ class UserController extends Controller
         }
     }
 
+    // function login này có xác minh nhưng chưa dùng tới 
     public function login(LoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
-    
+
         try {
             $user = User::where('email', $credentials['email'])->first();
-            if (!$user || $user->status != 1) {
-                return response()->json(['error' => 'Account is not verified.'], 403);
+
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
             }
-    
-            if (!$token = JWTAuth::attempt($credentials)) {
+
+            // Kiểm tra thông tin đăng nhập và tạo token
+            JWTAuth::factory()->setTTL(60); // Đặt thời gian sống của token
+            $token = JWTAuth::claims(['sub' => $user->id])->attempt($credentials);
+
+            if (!$token) {
                 return response()->json(['error' => 'Invalid Credentials'], 401);
             }
-    
+            // dd($token);
+            // Trả về thông tin người dùng cùng token
             return response()->json([
                 'message' => 'Successfully logged in',
+                'data' => [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    'role_id' => $user->role_id,
+                    'status' => $user->status,
+                    'firt_name' => $user->firt_name,
+                    'last_name' => $user->last_name,
+                    'gender' => $user->gender,
+                    'birthday' => $user->birthday,
+                    'address' => $user->address,
+                    'image_user' => $user->image_user, // Trường ảnh người dùng
+                    'phone_number' => $user->phone_number,
+                ],
                 'token' => $token
-            ], 200);
-    
+            ], 200)->cookie(
+                'jwt_token',
+                $token,
+                60, // Thời gian sống của cookie
+                '/',       // Đường dẫn của cookie
+                null,      // Domain của cookie, có thể đặt thành null để dùng domain mặc định
+                false,     // Đặt là false nếu bạn đang dùng HTTP (phát triển cục bộ)
+                true       // HTTP-only
+            );
+
         } catch (JWTException $e) {
             return response()->json([
                 'error' => 'Could not create token',
@@ -97,6 +127,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
     public function activateAccount($user_id, $token)
     {
@@ -139,7 +170,8 @@ class UserController extends Controller
     public function refresh()
     {
         try {
-            $token = auth()->getToken();
+            $token = JWTAuth::getToken();
+
     
             if (!$token) {
                 return response()->json([
@@ -177,35 +209,41 @@ class UserController extends Controller
         }
     } 
 
-
-    public function update(UpdateUserRequest $request)  
+    public function update(UpdateUserRequest $request)
     {
         try {
-            if (auth()->user()->user_id == $request->id) {
-                $user = User::findOrFail($request->id);
-    
-                $user->fill($request->only([
-                    'first_name',
-                    'last_name',
-                    'gender',
-                    'birthday',
-                    'address',
-                    'phone_number'
-                ]));
-    
-                if ($request->hasFile('image_user')) {
-                    $data = $this->handleUploadImage($request, 'image_user', 'avt_image');
-                    if ($data) {
-                        $user->image_user = $data;
-                    } 
-                }
-    
-                $user->save();
-    
-                return response()->json(['message' => 'User information updated successfully', 'user' => $user], 200);
-            } else {
-                return response()->json(['error' => 'Unauthorized action'], 403);
+            // Lấy người dùng hiện tại từ token xác thực
+            $user = auth()->user();
+
+            // Chuẩn bị dữ liệu cần cập nhật
+            $updateData = [
+             
+                'gender' => $request->input('gender'),
+                'birthday' => $request->input('birthday'),
+                'address' => $request->input('address'),
+            ];
+
+            // Kiểm tra và cập nhật số điện thoại nếu người dùng nhập số mới
+            if ($request->filled('phone_number') && $request->input('phone_number') !== $user->phone_number) {
+                $updateData['phone_number'] = $request->input('phone_number');
             }
+
+            // Kiểm tra và xử lý ảnh nếu có
+            if ($request->hasFile('image_user')) {
+                $data = $this->handleUploadImage($request, 'image_user', 'avt_image');
+                if ($data) {
+                    $updateData['image_user'] = $data;
+                }
+            }
+
+            // Cập nhật dữ liệu một lần
+            User::where('id', $user->id)->update($updateData);
+
+            // Tải lại thông tin người dùng sau khi cập nhật
+            $user = User::find($user->id);
+
+            return response()->json(['message' => 'User information updated successfully', 'user' => $user], 200);
+
         } catch (Exception $e) {
             return response()->json([
                 'error' => 'Could not update user information',
@@ -213,5 +251,37 @@ class UserController extends Controller
             ], 500);
         }
     }
- 
+
+
+    public function getProfile()
+    {
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return response()->json(['error' => 'User not authenticated'], 401);
+            }
+
+            return response()->json([
+                'message' => 'User profile retrieved successfully',
+                'data' => [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    'role_id' => $user->role_id,
+                    'status' => $user->status,
+                    'firt_name' => $user->firt_name,
+                    'last_name' => $user->last_name,
+                    'gender' => $user->gender,
+                    'birthday' => $user->birthday,
+                    'address' => $user->address,
+                    'image_user' => $user->image_user,
+                    'phone_number' => $user->phone_number,
+                ],
+            ], 200);
+
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Could not retrieve user profile', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+
 }

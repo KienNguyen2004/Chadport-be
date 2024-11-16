@@ -24,7 +24,9 @@ class RegisterRequest extends FormRequest
         return [
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
-            'phone_number' => 'required|regex:/(0)[0-9]/|not_regex:/[a-z]/|min:9|unique:users,phone_number'
+            'firt_name' => 'required|string|max:50',
+            'last_name' => 'required|string|max:50',
+            // 'phone_number' => 'required|regex:/(0)[0-9]/|not_regex:/[a-z]/|min:9|unique:users,phone_number'
         ];
     }
 }
