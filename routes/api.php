@@ -50,6 +50,7 @@ Route::group(['prefix' => 'user'], function () {
 // Product routes
 Route::post('add/products', [ProductControllers::class, 'createProducts']);
 Route::get('list/products', [ProductControllers::class, 'showProduct']);
+Route::get('shop/products', [ProductControllers::class, 'showShopProducts']);
 Route::get('showdetail/products/{id}', [ProductControllers::class, 'showDetail']);
 Route::delete('delete/products/{id}', [ProductControllers::class, 'destroy']);
 Route::post('update/products/{id}', [ProductControllers::class, 'updateProduct']);
