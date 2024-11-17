@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Admin\ProductControllerAD;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\VoucherController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductControllers;
@@ -51,6 +54,7 @@ Route::group(['prefix' => 'user'], function () {
 // Product routes
 Route::post('add/products', [ProductControllers::class, 'createProducts']);
 Route::get('list/products', [ProductControllers::class, 'showProduct']);
+Route::get('shop/products', [ProductControllers::class, 'showShopProducts']);
 Route::get('showdetail/products/{id}', [ProductControllers::class, 'showDetail']);
 Route::delete('delete/products/{id}', [ProductControllers::class, 'destroy']);
 Route::post('update/products/{id}', [ProductControllers::class, 'updateProduct']);
@@ -64,8 +68,14 @@ Route::put('categories/{id}', [CategoryController::class, 'updates'])->name('cat
 Route::delete('categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
 
+// Brand route
+Route::resource('brand', BrandController::class);
+
+//Voucher route
+Route::resource('voucher', VoucherController::class);
+
 // comments routes
 Route::post('add/comments', [CommentsController::class, 'createComments']);
 Route::get('getall/comments/{product_id}', [CommentsController::class, 'getCommentsByProduct']);
 Route::delete('delete/comments/{comment_id}', [CommentsController::class, 'deleteComment']);
-  
+

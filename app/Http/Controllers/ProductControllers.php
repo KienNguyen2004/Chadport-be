@@ -3,23 +3,37 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+
 
 class ProductControllers extends Controller
 {
     public function createProducts(Request $request)
     {
-        // Lấy các dữ liệu đầu vào trừ `image_description`
+        // Lấy các dữ liệu đầu vào trừ image_description
         $data = $request->only([
-            'cat_id', 'title', 'name', 'status', 'col_id', 'size_id', 'brand_id',
-            'description', 'quantity', 'image_product', 
-            'price', 'price_sale', 'type', 'size', 'color'
+            'cat_id',
+            'title',
+            'name',
+            'status',
+            'col_id',
+            'size_id',
+            'brand_id',
+            'description',
+            'quantity',
+            'image_product',
+            'price',
+            'price_sale',
+            'type',
+            'size',
+            'color'
         ]);
 
-        // Xác thực dữ liệu đầu vào, bao gồm các ảnh trong `image_description`
+        // Xác thực dữ liệu đầu vào, bao gồm các ảnh trong image_description
         $validated = $request->validate([
-            'cat_id' => 'required|exists:categories,id', 
+            'cat_id' => 'required|exists:categories,id',
             'title' => 'required|max:255',
             'name' => 'required|max:500',
             'status' => 'required|in:active,inactive',
@@ -61,20 +75,49 @@ class ProductControllers extends Controller
         $product = Product::create($data);
 
         return response()->json([
-            'data' => $product, 
+            'data' => $product,
             'imagePaths' => $imagePaths, // Log để kiểm tra
             'message' => 'Product created with images successfully'
         ], 201);
     }
 
-    public function showProduct (Request $request)
+    public function showProduct(Request $request)
     {
-        $listProduct = Product::all();
+        // Số lượng sản phẩm hiển thị trên mỗi trang
+        $perPage = 10;
 
+        // Sử dụng phân trang Laravel với số lượng sản phẩm trên mỗi trang là $perPage
+        $listProduct = Product::paginate($perPage);
+
+        // Trả về danh sách sản phẩm và thông tin phân trang
         return response()->json([
-            'data'=> $listProduct,
-        ],201);
+            'data' => $listProduct->items(),
+            'current_page' => $listProduct->currentPage(),
+            'last_page' => $listProduct->lastPage(),
+            'total' => $listProduct->total(),
+        ], 200);
     }
+
+    public function showShopProducts(Request $request)
+    {
+        // Số sản phẩm trên mỗi trang
+        $perPage = 15;
+
+        // Lấy danh sách sản phẩm với phân trang
+        $listProduct = Product::paginate($perPage);
+
+        // Trả về dữ liệu sản phẩm và thông tin phân trang
+        return response()->json([
+            'data' => $listProduct->items(), // Danh sách sản phẩm
+            'current_page' => $listProduct->currentPage(), // Trang hiện tại
+            'last_page' => $listProduct->lastPage(), // Trang cuối cùng
+            'total' => $listProduct->total(), // Tổng số sản phẩm
+            'per_page' => $perPage, // Số sản phẩm mỗi trang
+        ], 200);
+    }
+
+
+
 
     // Phương thức để lấy thông tin chi tiết của sản phẩm theo ID
     public function showDetail($id)
@@ -118,7 +161,6 @@ class ProductControllers extends Controller
             
             // Lấy dữ liệu đầu vào từ yêu cầu
             $data = $validated;
-
             // Lưu ảnh chính của sản phẩm
             if ($request->hasFile('image_product')) {
                 $imageProductPath = $request->file('image_product')->store('images', 'public');
@@ -131,6 +173,7 @@ class ProductControllers extends Controller
                 }
             }
             
+
 
             // Xử lý upload các file hình ảnh mô tả nếu có
             if ($request->hasFile('image_description')) {
@@ -148,14 +191,13 @@ class ProductControllers extends Controller
             // Cập nhật thông tin sản phẩm
             $product->update($data);
             // Lấy tất cả dữ liệu sản phẩm sau khi cập nhật
-            
+
             // Trả về phản hồi JSON với dữ liệu đã cập nhật
             return response()->json([
                 'status' => 'success',
                 'message' => 'Sản phẩm đã được cập nhật thành công!',
                 'data' => $product
             ], 200);
-
         } catch (\Exception $e) {
             // Xử lý lỗi nếu có
             return response()->json([
@@ -166,13 +208,13 @@ class ProductControllers extends Controller
         }
     }
 
-    
+
     public function destroy(Request $request, string $id)
     {
         try {
-            // Tìm sản phẩm theo `id`
+            // Tìm sản phẩm theo id
             $product = Product::where('id', $id)->first();
-    
+
             // Kiểm tra xem sản phẩm có tồn tại không
             if (!$product) {
                 return response()->json([
@@ -180,16 +222,15 @@ class ProductControllers extends Controller
                     'message' => 'Không tìm thấy sản phẩm để xóa!'
                 ], 404);
             }
-    
+
             // Nếu sản phẩm tồn tại, thực hiện xóa
             $product->delete();
-    
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Sản phẩm đã được xóa thành công!',
                 'data' => $product
             ], 200);
-    
         } catch (\Exception $e) {
             // Xử lý lỗi nếu có
             return response()->json([
@@ -199,7 +240,7 @@ class ProductControllers extends Controller
             ], 500);
         }
     }
-    
+
     public function getProductsByCategory($cat_id)
     {
         // Lấy tất cả sản phẩm theo danh mục
@@ -215,6 +256,16 @@ class ProductControllers extends Controller
             'data' => $products
         ], 200);
     }
+    public function getCategories(Request $request)
+    {
+        $perPage = 3; // Số lượng items mỗi trang
+        $categories = Category::paginate($perPage);
 
-
+        return response()->json([
+            'data' => $categories->items(), // Dữ liệu danh mục
+            'current_page' => $categories->currentPage(), // Trang hiện tại
+            'last_page' => $categories->lastPage(), // Trang cuối
+            'total' => $categories->total(), // Tổng số danh mục
+        ], 200);
+    }
 }
