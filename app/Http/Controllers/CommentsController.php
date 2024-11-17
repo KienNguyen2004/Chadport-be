@@ -12,14 +12,15 @@ class CommentsController extends Controller
     {
         $validatedData = $request->validate([
             'product_id' => 'required|exists:products,id',
-            'user_id' => 'required|exists:users,id',
+            // 'user_id' => 'required|exists:users,id',
             'content' => 'required|string',
             'rating' => 'nullable|integer|max:5',
-            'like_count' => 'integer|min:0',
-            'dislike_count' => 'integer|min:0',
             'reported' => 'boolean',
         ]);
     
+        // Lấy user_id từ token JWT
+        $validatedData['user_id'] = auth()->id();
+ 
         // Tạo mới comment
         $comment = Comment::create($validatedData);
     

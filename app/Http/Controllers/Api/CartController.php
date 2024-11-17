@@ -30,7 +30,6 @@ class CartController extends Controller
         try {
             $product_id = $request->product_id;
             $dataProduct = Product::find($product_id);
-
             if (!$dataProduct) {
                 return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
             }
@@ -152,7 +151,7 @@ class CartController extends Controller
 
             $user_id = auth()->user()->user_id;
             $data_cart = $this->cart;
-
+            $this->cart = session()->get('cart', []);
             foreach ($this->cart as $product) {
                 if (is_array($product) && isset($product['product_id'], $product['product_quantity'])) {
                     $data = Product::find($product['product_id']);

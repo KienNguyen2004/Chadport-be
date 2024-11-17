@@ -80,6 +80,12 @@ class UserController extends Controller
                 return response()->json(['error' => 'User not found'], 404);
             }
 
+
+            // Kiểm tra trạng thái tài khoản
+            if ($user->status === 'inactive') {
+                return response()->json(['error' => 'Your account is locked. Please contact support.'], 403); 
+            }
+
             // Kiểm tra thông tin đăng nhập và tạo token
             JWTAuth::factory()->setTTL(60); // Đặt thời gian sống của token
             $token = JWTAuth::claims(['sub' => $user->id])->attempt($credentials);
@@ -283,5 +289,55 @@ class UserController extends Controller
         }
     }
 
+    public function GetAllUser()
+    {
+        try {
+            // Lấy tất cả user từ cơ sở dữ liệu
+            $users = User::all();
+
+            return response()->json([
+                'message' => 'User list retrieved successfully',
+                'users' => $users
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Could not retrieve user list',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function toggleUserStatus($id)
+    {
+        try {
+            // Tìm người dùng theo ID
+            $user = User::findOrFail($id);
+
+            // Kiểm tra nếu trạng thái hiện tại là "active", thì đổi thành "inactive" (khóa tài khoản)
+            // Nếu trạng thái là "inactive", đổi thành "active" (mở khóa tài khoản)
+            $user->status = $user->status === 'active' ? 'inactive' : 'active';
+            $user->save(); // Lưu thay đổi vào cơ sở dữ liệu
+
+            // Trả về thông báo thành công
+            return response()->json([
+                'message' => 'User status updated successfully',
+                'user' => $user
+            ], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'User not found',
+                'message' => 'No user found with the given ID'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Could not update user status',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    
 
 }

@@ -28,7 +28,7 @@ class ProductControllers extends Controller
             'brand_id' => 'nullable|exists:brands,id',
             'description' => 'nullable|string',
             'quantity' => 'required|integer|min:0',
-            'image_product' => 'required|max:1000',
+            'image_product' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'image_description' => 'nullable|array',
             'image_description.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'price' => 'required|numeric|min:0',
@@ -39,6 +39,12 @@ class ProductControllers extends Controller
         ]);
 
         $data = $validated;
+
+        // Lưu ảnh chính của sản phẩm
+        if ($request->hasFile('image_product')) {
+            $imageProductPath = $request->file('image_product')->store('images', 'public');
+            $data['image_product'] = $imageProductPath; // Lưu đường dẫn ảnh chính
+        }
 
         // Xử lý việc upload các file và lưu đường dẫn vào mảng
         if ($request->hasFile('image_description')) {
@@ -99,9 +105,9 @@ class ProductControllers extends Controller
                 'brand_id' => 'nullable|exists:brands,id',
                 'description' => 'nullable|string',
                 'quantity' => 'sometimes|integer|min:0',
-                'image_product' => 'required|max:255',
+                'image_product' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'image_description' => 'nullable|array',
-                'image_description.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'image_description.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'price' => 'sometimes|numeric|min:0',
                 'price_sale' => 'nullable|numeric|min:0',
                 'type' => 'nullable|string|max:50',
@@ -109,9 +115,24 @@ class ProductControllers extends Controller
                 'color' => 'nullable|string|max:20',
             ]);
 
+            
             // Lấy dữ liệu đầu vào từ yêu cầu
             $data = $validated;
-                        // Xử lý upload các file hình ảnh mô tả nếu có
+
+            // Lưu ảnh chính của sản phẩm
+            if ($request->hasFile('image_product')) {
+                $imageProductPath = $request->file('image_product')->store('images', 'public');
+                $data['image_product'] = $imageProductPath; // Lưu đường dẫn ảnh mới
+            } else {
+                // Nếu không có ảnh mới, giữ lại ảnh cũ (không thay đổi)
+                $existingProduct = Product::find($id);
+                if ($existingProduct && $existingProduct->image_product) {
+                    $data['image_product'] = $existingProduct->image_product; // Giữ lại ảnh cũ
+                }
+            }
+            
+
+            // Xử lý upload các file hình ảnh mô tả nếu có
             if ($request->hasFile('image_description')) {
                 $imagePaths = [];
                 foreach ($request->file('image_description') as $file) {
