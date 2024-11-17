@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('comment', function (Blueprint $table) {
-            $table->dropColumn(['like_count', 'dislike_count']);
+        Schema::create('sizes', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->timestamps();
         });
     }
 
@@ -21,9 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('comment', function (Blueprint $table) {
-            $table->integer('like_count')->default(0);
-            $table->integer('dislike_count')->default(0);
-        });
+        Schema::dropIfExists('sizes');
     }
 };
