@@ -16,21 +16,21 @@ return new class extends Migration
             // Tạo cột cat_id trước
             $table->unsignedBigInteger('cat_id'); 
             // Sau khi tạo cột cat_id, thêm khóa ngoại
-            $table->foreign('cat_id')->references('id')->on('categories')->onDelete('cascade');
             $table->string('title'); 
             $table->string('name', 255); 
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->unsignedBigInteger('brand_id'); 
             $table->text('description');
             $table->integer('quantity')->default(0);
-            $table->string('image_product'); 
-            $table->json('image_description'); 
+            $table->string('image_product')->nullable(); 
+            $table->json('image_description')->nullable(); 
             $table->float('price', 11, 2); 
             $table->float('price_sale', 11, 2); 
             $table->string('type'); 
             $table->timestamps();
 
             $table->foreign('brand_id')->references('id')->on('brands')->onDelete('cascade');
+            $table->foreign('cat_id')->references('id')->on('categories')->onDelete('cascade');
 
 
         });

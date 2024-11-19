@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\VoucherResource;
-use App\Models\Voucher;
+use App\Http\Resources\SizeResource;
+use App\Models\Size;
 use Illuminate\Http\Request;
 
-class VoucherController extends Controller
+class SizeController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $voucher = Voucher::all();
-        return VoucherResource::collection($voucher);
+        $size = Size::all();
+        return  SizeResource::collection($size);
     }
 
     /**
@@ -26,8 +26,8 @@ class VoucherController extends Controller
         if ($request->isMethod('POST')) {
             $params = $request->all();
 
-            $newvoucher = Voucher::create($params);
-            return new VoucherResource($newvoucher);
+            $newsize = Size::create($params);
+            return new SizeResource($newsize);
         }
     }
 
@@ -36,11 +36,11 @@ class VoucherController extends Controller
      */
     public function show(string $id)
     {
-        $voucher = Voucher::query()->findOrFail($id);
-        if (!$voucher) {
-            return response()->json(['message' => 'Không tìm thấy voucher'], 404);
+        $size = Size::query()->findOrFail($id);
+        if (!$size) {
+            return response()->json(['message' => 'Không tim thấy Size'], 404);
         }
-        return new VoucherResource($voucher);
+        return new SizeResource($size);
     }
 
     /**
@@ -50,9 +50,9 @@ class VoucherController extends Controller
     {
         if ($request->isMethod('PUT')) {
             $params = $request->all();
-            $voucher = Voucher::findOrFail($id);
-            $voucher->update($params);
-            return new VoucherResource($voucher);
+            $size = Size::findOrFail($id);
+            $size->update($params);
+            return new SizeResource($size);
         }
     }
 
@@ -61,8 +61,8 @@ class VoucherController extends Controller
      */
     public function destroy(string $id)
     {
-        $voucher = Voucher::findOrFail($id);
-        $voucher->delete();
+        $brand = Size::findOrFail($id);
+        $brand->delete();
         return response()->json([
             'message' => 'Xóa thành công!!'
         ], 200);

@@ -17,5 +17,10 @@ class Color extends Model
         'image',
     ];
 
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
 
 }
