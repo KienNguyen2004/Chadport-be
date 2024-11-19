@@ -9,13 +9,11 @@ class Color extends Model
 {
     use HasFactory;
 
-    
-    protected $table = 'colors';
-    protected $fillable = [
-        'id',
-        'name',
-        'image',
-    ];
+    // Thêm 'image' vào mảng $fillable
+    protected $fillable = ['name', 'image'];
 
-
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class, 'col_id');
+    }
 }

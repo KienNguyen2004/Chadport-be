@@ -10,24 +10,24 @@ class ProductVariant extends Model
     use HasFactory;
 
     protected $table = 'product_variants';
-    protected $fillable = [
-        'id',
-        'product_id',
-        'price',
-        'stock',
-    ];
 
-    
-    public function product() {
-        return $this->belongsTo(Product::class);
-    }
+    protected $fillable = ['product_id', 'col_id', 'size_id', 'quatity'];
 
-    public function attributeValues() {
-        return $this->belongsToMany(AttributeValue::class, 'variant_attribute_values');
-    }
-
-    public function cartItems()
+    public function product()
     {
-        return $this->hasMany(Cart_item::class);
+        return $this->belongsTo(Product::class, 'product_id');
     }
+
+    public function color()
+    {
+        return $this->belongsTo(Color::class, 'col_id');
+    }
+
+    public function size()
+    {
+        return $this->belongsTo(Size::class, 'size_id');
+    }
+//     public function cartItems() {
+//         return $this->hasMany(CartItem::class);
+//     }
 }

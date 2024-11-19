@@ -12,6 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductControllers;
 use App\Http\Controllers\CommentsController;
+use App\Http\Controllers\Api\ColorController;
+use App\Http\Controllers\Api\SizeController;
+use App\Http\Controllers\Api\VariantController;
+
 
 // Group admin routes
 Route::group(['prefix' => 'admin'], function () {
@@ -37,7 +41,7 @@ Route::group(['prefix' => 'user'], function () {
     Route::get('/profile', [UserController::class, 'getProfile'])->middleware(['jwt.cookie', 'auth:api']);
     Route::get('/activate-account/{user_id}/{token}', [UserController::class, 'activateAccount'])->name('activate-account');
     Route::group(['middleware' => ['api', 'auth:api']], function () {
-        Route::post('/update', [UserController::class, 'update']); 
+        Route::post('/update', [UserController::class, 'update']);
         Route::post('/logout', [UserController::class, 'logout']);
         Route::post('/refresh', [UserController::class, 'refresh']);
         Route::post('/add_to_cart', [CartController::class, 'add_to_cart']);
@@ -48,7 +52,7 @@ Route::group(['prefix' => 'user'], function () {
         Route::post('/add-coupon-cart', [CartController::class, 'addCouponCart']);
         Route::post('/payment', [CartController::class, 'payment']);
         Route::post('/remove-voucher', [CartController::class, 'removeVoucher']);
-    }); 
+    });
 });
 
 // Product routes
@@ -60,12 +64,38 @@ Route::delete('delete/products/{id}', [ProductControllers::class, 'destroy']);
 Route::post('update/products/{id}', [ProductControllers::class, 'updateProduct']);
 Route::get('/products/category/{cat_id}', [ProductControllers::class, 'getProductsByCategory']);
 
+Route::get('product/{id}', [ProductControllers::class, 'showProductById']);
+
+
 // Category routes
 Route::post('categories', [CategoryController::class, 'creates'])->name('categories.creates');
 Route::get('/categories/{id}', [CategoryController::class, 'show']);
 Route::get('categories', [CategoryController::class, 'GetAll'])->name('categories.GetAll');
 Route::put('categories/{id}', [CategoryController::class, 'updates'])->name('categories.updates');
 Route::delete('categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+// Color routes
+Route::post('colors', [ColorController::class, 'createColor']); // 
+Route::get('colors', [ColorController::class, 'GetAll']); // Lấy tất cả màu sắc
+Route::get('colors/{id}', [ColorController::class, 'getColor']); // Lấy màu sắc theo ID
+Route::put('colors/{id}', [ColorController::class, 'updates']); // Cập nhật màu sắc
+Route::delete('colors/{id}', [ColorController::class, 'deleteColor']); // Xóa màu sắc
+
+// Size routes
+Route::get('/sizes', [SizeController::class, 'GetAll']);
+Route::get('/sizes/{id}', [SizeController::class, 'show']);
+Route::post('/sizes', [SizeController::class, 'creates']); // Đảm bảo có dòng này
+Route::put('/sizes/{id}', [SizeController::class, 'updates']);
+Route::delete('/sizes/{id}', [SizeController::class, 'destroy']);
+
+
+// Variant routes
+Route::post('products/{productId}/variants', [VariantController::class, 'creates']); // Route để tạo mới variant
+Route::get('variants/{id}', [VariantController::class, 'show']); // Route để lấy thông tin variant theo ID
+Route::get('products/{productId}/variants', [VariantController::class, 'GetAll']); // Route để lấy tất cả variants
+Route::put('variants/{id}', [VariantController::class, 'updates']); // Route để cập nhật variant
+Route::delete('variants/{id}', [VariantController::class, 'destroy']); // Route để xóa variant
+
 
 
 // Brand route
@@ -78,4 +108,3 @@ Route::resource('voucher', VoucherController::class);
 Route::post('add/comments', [CommentsController::class, 'createComments']);
 Route::get('getall/comments/{product_id}', [CommentsController::class, 'getCommentsByProduct']);
 Route::delete('delete/comments/{comment_id}', [CommentsController::class, 'deleteComment']);
-
