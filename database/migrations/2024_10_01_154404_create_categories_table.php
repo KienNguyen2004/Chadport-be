@@ -15,7 +15,6 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('name',50);
             $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->string('imageURL',255);
             $table->timestamps();
         });
     }

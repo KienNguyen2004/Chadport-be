@@ -14,7 +14,6 @@ class Category extends Model
         'id',
         'name',
         'status',
-        'imageURL'
     ];
 
     //  Relationship

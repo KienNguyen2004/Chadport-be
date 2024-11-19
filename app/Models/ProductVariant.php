@@ -13,21 +13,28 @@ class ProductVariant extends Model
     protected $fillable = [
         'id',
         'product_id',
-        'price',
-        'stock',
+        'quatity',
+        'color_id',
+        'size_id'
     ];
-
-    
-    public function product() {
-        return $this->belongsTo(Product::class);
-    }
-
-    public function attributeValues() {
-        return $this->belongsToMany(AttributeValue::class, 'variant_attribute_values');
-    }
 
     public function cartItems()
     {
         return $this->hasMany(Cart_item::class);
+    }
+
+    public function color()
+    {
+        return $this->belongsTo(Color::class);
+    }
+
+    public function size()
+    {
+        return $this->belongsTo(Size::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
     }
 }

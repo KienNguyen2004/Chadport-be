@@ -14,7 +14,7 @@ class BrandController extends Controller
      */
     public function index()
     {
-        $brand = Brand::query();
+        $brand = Brand::all();
         return BrandResource::collection($brand);
     }
 
@@ -37,6 +37,9 @@ class BrandController extends Controller
     public function show(string $id)
     {
         $brand = Brand::query()->findOrFail($id);
+        if (!$brand) {
+            return response()->json(['message' => 'Không tìm thấy Brand'], 404);
+        }
         return new BrandResource($brand);
     }
 

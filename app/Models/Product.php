@@ -18,7 +18,7 @@ class Product extends Model
         'title',
         'name',
         'status',
-        'col_id',
+        'color_id',
         'size_id',
         'brand_id',
         'description',
@@ -28,11 +28,9 @@ class Product extends Model
         'price',
         'price_sale',
         'type',
-        'type',
         'created_at',
         'updated_at',
-        'size',
-        'color',
+
     ];
 
 
