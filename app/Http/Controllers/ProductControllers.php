@@ -27,8 +27,6 @@ class ProductControllers extends Controller
             'price',
             'price_sale',
             'type',
-            'size',
-            'color'
         ]);
 
         // Xác thực dữ liệu đầu vào, bao gồm các ảnh trong image_description
@@ -39,7 +37,7 @@ class ProductControllers extends Controller
             'status' => 'required|in:active,inactive',
             'col_id' => 'nullable|exists:colors,id',
             'size_id' => 'nullable|exists:sizes,id',
-            'brand_id' => 'nullable|exists:brands,id',
+            'brand_id' => 'nullable|exists:brands,id', // Trường này là optional
             'description' => 'nullable|string',
             'quantity' => 'required|integer|min:0',
             'image_product' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -48,12 +46,11 @@ class ProductControllers extends Controller
             'price' => 'required|numeric|min:0',
             'price_sale' => 'nullable|numeric|min:0',
             'type' => 'nullable|string|max:50',
-            'size' => 'nullable|string|max:20',
-            'color' => 'nullable|string|max:20',
         ]);
 
-        $data = $validated;
 
+        $data = $validated;
+        $imagePaths = [];
         // Lưu ảnh chính của sản phẩm
         if ($request->hasFile('image_product')) {
             $imageProductPath = $request->file('image_product')->store('images', 'public');
@@ -71,12 +68,12 @@ class ProductControllers extends Controller
             $data['image_description'] = json_encode($imagePaths);  // Lưu đường dẫn ảnh dưới dạng JSON
         }
 
+
         // Tạo sản phẩm mới sau khi đã xử lý và xác thực dữ liệu
         $product = Product::create($data);
 
         return response()->json([
-            'data' => $product,
-            'imagePaths' => $imagePaths, // Log để kiểm tra
+            'data' => $product,'imagePaths' => $imagePaths, // Log để kiểm tra
             'message' => 'Product created with images successfully'
         ], 201);
     }
@@ -268,4 +265,15 @@ class ProductControllers extends Controller
             'total' => $categories->total(), // Tổng số danh mục
         ], 200);
     }
+
+    public function showProductById($id)
+{
+    $product = Product::find($id); // Tìm sản phẩm theo id
+
+    if (!$product) {
+        return response()->json(['message' => 'Product not found'], 404); // Nếu không tìm thấy sản phẩm
+    }
+
+    return response()->json(['data' => $product], 200); // Trả về sản phẩm tìm thấy
+}
 }

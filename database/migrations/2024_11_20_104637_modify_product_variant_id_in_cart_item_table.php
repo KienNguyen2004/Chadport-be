@@ -11,20 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('colors', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('name');
-            $table->string('image'); 
-            $table->timestamps();
+        Schema::table('cart_item', function (Blueprint $table) {
+            $table->unsignedBigInteger('product_variant_id')->nullable()->change();
         });
     }
-    
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('colors');
+        Schema::table('cart_item', function (Blueprint $table) {
+            $table->unsignedBigInteger('product_variant_id')->nullable(false)->change();
+        });
     }
 };

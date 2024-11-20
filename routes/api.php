@@ -64,11 +64,11 @@ Route::post('update/products/{id}', [ProductControllers::class, 'updateProduct']
 Route::get('/products/category/{cat_id}', [ProductControllers::class, 'getProductsByCategory']);
 
 // Category routes
-// Route::post('categories', [CategoryController::class, 'creates'])->name('categories.creates');
-// Route::get('/categories/{id}', [CategoryController::class, 'show']);
-// Route::get('categories', [CategoryController::class, 'GetAll'])->name('categories.GetAll');
-// Route::put('categories/{id}', [CategoryController::class, 'updates'])->name('categories.updates');
-// Route::delete('categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+Route::post('categories', [CategoryController::class, 'creates'])->name('categories.creates');
+Route::get('/categories/{id}', [CategoryController::class, 'show']);
+Route::get('categories', [CategoryController::class, 'GetAll'])->name('categories.GetAll');
+Route::put('categories/{id}', [CategoryController::class, 'updates'])->name('categories.updates');
+Route::delete('categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
 
 // Brand route
@@ -82,11 +82,3 @@ Route::post('add/comments', [CommentsController::class, 'createComments']);
 Route::get('getall/comments/{product_id}', [CommentsController::class, 'getCommentsByProduct']);
 Route::delete('delete/comments/{comment_id}', [CommentsController::class, 'deleteComment']);
 
-Route::resource('product', ProductsController::class);
-
-Route::resource('color', ColorController::class);
-
-Route::resource('size', SizeController::class);
-
-
-Route::resource('category', CategoryController::class);

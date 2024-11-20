@@ -3,69 +3,78 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\SizeRequest;
-use App\Http\Resources\SizeResource;
+
 use App\Models\Size;
 use Illuminate\Http\Request;
 
 class SizeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $size = Size::all();
-        return  SizeResource::collection($size);
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(SizeRequest $request)
+    // Lấy thông tin kích thước theo ID
+    public function show($id)
     {
-        if ($request->isMethod('POST')) {
-            $params = $request->all();
+        $size = Size::find($id);
 
-            $newsize = Size::create($params);
-            return new SizeResource($newsize);
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        $size = Size::query()->findOrFail($id);
         if (!$size) {
-            return response()->json(['message' => 'Không tim thấy Size'], 404);
+            return response()->json(['message' => 'Size not found'], 404);
         }
-        return new SizeResource($size);
+
+        return response()->json(['data' => $size], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(SizeRequest $request, string $id)
+    // Tạo mới kích thước
+    public function creates(Request $request)
     {
-        if ($request->isMethod('PUT')) {
-            $params = $request->all();
-            $size = Size::findOrFail($id);
-            $size->update($params);
-            return new SizeResource($size);
-        }
-    }
+        $validated = $request->validate([
+            'name' => 'required|string|max:50|unique:sizes,name',
+        ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        $brand = Size::findOrFail($id);
-        $brand->delete();
+        if ($validated) {
+            $size = Size::create([
+                'name' => $request->input('name'),
+            ]);
+        }
+
         return response()->json([
-            'message' => 'Xóa thành công!!'
+            'data' => $size
+        ], 201);
+    }
+
+    // Lấy tất cả kích thước
+    public function GetAll(Request $request)
+    {
+        $sizes = Size::all();
+
+        return response()->json([
+            'data' => $sizes
+        ], 200);
+    }
+
+    // Cập nhật kích thước
+    public function updates(Request $request, string $id)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:50|unique:sizes,name,' . $id,
+        ]);
+
+        if ($validated) {
+            $size = Size::where('id', $id)->update([
+                'name' => $request->input('name'),
+            ]);
+        }
+
+        return response()->json([
+            'data' => $size
+        ], 200);
+    }
+
+    // Xóa kích thước
+    public function destroy(Request $request, string $id)
+    {
+        $size = Size::where('id', $id)->delete();
+
+        return response()->json([
+            'message' => 'Size deleted successfully'
         ], 200);
     }
 }
