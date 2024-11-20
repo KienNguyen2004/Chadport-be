@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\SizeRequest;
 use App\Http\Resources\SizeResource;
 use App\Models\Size;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class SizeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(SizeRequest $request)
     {
         if ($request->isMethod('POST')) {
             $params = $request->all();
@@ -46,7 +47,7 @@ class SizeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(SizeRequest $request, string $id)
     {
         if ($request->isMethod('PUT')) {
             $params = $request->all();

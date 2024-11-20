@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ColorRequest;
 use App\Http\Resources\ColorResource;
 use App\Models\Color;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class ColorController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ColorRequest $request)
     {
         if ($request->isMethod('POST')) {
             $params = $request->all();
@@ -54,7 +55,7 @@ class ColorController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ColorRequest $request, string $id)
     {
         if ($request->isMethod('PUT')) {
             $params = $request->all();
