@@ -90,7 +90,35 @@ class CartController extends Controller
         }
     }
 
-
+    public function getCartByUserId(Request $request)
+    {
+        try {
+            // Xác thực user
+            $user = auth()->user();
+            if (!$user) {
+                return response()->json(['message' => 'Bạn cần đăng nhập để xem giỏ hàng'], 401);
+            }
+    
+            // Truy vấn giỏ hàng dựa theo user_id
+            $cartItems = Cart_item::with('product') // Include thông tin sản phẩm
+                ->where('user_id', $user->id)
+                ->get();
+    
+            if ($cartItems->isEmpty()) {
+                return response()->json(['message' => 'Giỏ hàng của bạn đang trống'], 200);
+            }
+    
+            // Trả về dữ liệu giỏ hàng
+            return response()->json([
+                'message' => 'Lấy giỏ hàng thành công',
+                'cart_items' => $cartItems
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error fetching cart: ' . $e->getMessage());
+            return response()->json(['message' => 'Đã xảy ra lỗi. Vui lòng thử lại sau.'], 500);
+        }
+    }
+    
 
     public function get_cart($cartId)
     {

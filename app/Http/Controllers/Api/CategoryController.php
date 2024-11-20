@@ -13,11 +13,13 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function GetAll(Request $request)
     {
-        $listcategories = Category::all();
+      $listcategories = Category::all();
 
-        return CategoryResource::collection($listcategories);
+      return response()->json([
+        'data' => $listcategories
+       ], 201);
     }
 
     /**

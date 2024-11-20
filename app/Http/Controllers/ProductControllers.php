@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -46,6 +47,7 @@ class ProductControllers extends Controller
             'price' => 'required|numeric|min:0',
             'price_sale' => 'nullable|numeric|min:0',
             'type' => 'nullable|string|max:50',
+            
         ]);
 
 
@@ -68,6 +70,7 @@ class ProductControllers extends Controller
             $data['image_description'] = json_encode($imagePaths);  // Lưu đường dẫn ảnh dưới dạng JSON
         }
 
+        
 
         // Tạo sản phẩm mới sau khi đã xử lý và xác thực dữ liệu
         $product = Product::create($data);
