@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('cart', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->unsignedBigInteger('voucher_id'); 
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->enum('status', ['đang sử dụng', 'đã thanh toán'])->default('đang sử dụng');
+            $table->float('total',11,2);
             $table->timestamps();
         });
     }

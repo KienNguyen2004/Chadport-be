@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('order_detail', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('order_id'); 
-            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('product_item_id');
             $table->foreign('order_id')->references('id')->on('order')->onDelete('cascade');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('product_item_id')->references('id')->on('product_items')->onDelete('cascade');
             $table->integer('quantity');
             $table->decimal('price',11,2); // giá của sản phẩm
             $table->decimal('total_price',10,2); // Tổng giá tiền

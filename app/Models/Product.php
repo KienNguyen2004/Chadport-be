@@ -9,55 +9,42 @@ class Product extends Model
 {
     use HasFactory;
 
-
     protected $table = 'products';
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'cat_id',
-        'title',
+        'category_id',      // Foreign key to categories table
+        'brand_id',         // Foreign key to brands table
         'name',
-        'status',
-        'color_id',
-        'size_id',
-        'brand_id',
         'description',
-        'quantity',
-        'image_product',
-        'image_description', // Thêm trường image_description để lưu JSON các ảnh mô tả
+        'title',
+        'status',           // Enum field for status
         'price',
         'price_sale',
-        'type',
+        'image_product',
+        'image_description', // JSON field for image descriptions
         'created_at',
         'updated_at',
-
     ];
 
 
-    // Relationship
-
-    public function Category() {
-        return $this->belongsToMany(Category::class);
-    }
-
-
-    public function productImage() {
-        return $this->hasMany(ProductImage::class);
-    }
-
-    public function Brand() {
-        return $this->belongsTo(Brand::class);
-    }
-
-    public function Comment() {
-        return $this->hasMany(Comment::class);
-    }
-
-    public function variants()
+    public function category()
     {
-        return $this->hasMany(ProductVariant::class, 'product_id');
+        return $this->belongsTo(Category::class, 'category_id'); // Each product belongs to a category
     }
 
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class, 'brand_id'); // Each product belongs to a brand
+    }
 
-    
+    public function productItems()
+    {
+        return $this->hasMany(ProductItems::class, 'product_id'); // A product can have multiple product items
+    }
+
+    public function productImages()
+    {
+        return $this->hasMany(ProductImage::class, 'product_id'); // Assuming you have a ProductImage model for images
+    }
 }

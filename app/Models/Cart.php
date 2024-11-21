@@ -14,6 +14,7 @@ class Cart extends Model
         'id',
         'user_id',
         'status',
+        'total'
     ];
 
     public function user() {
