@@ -45,6 +45,7 @@ Route::group(['prefix' => 'user'], function () {
         Route::post('/refresh', [UserController::class, 'refresh']);
         Route::post('/add_to_cart', [CartController::class, 'addToCart']);
         Route::get('/cart', [CartController::class, 'get_cart']);
+        Route::get('/cartbyiduser', [CartController::class, 'getCartByUserId']);
         Route::post('/delete_product_cart', [CartController::class, 'deleteProductCart']);
         Route::post('/update_quatity_cart', [CartController::class, 'updateQuantityCart']);
         Route::post('/payment', [CartController::class, 'payment']);
@@ -66,7 +67,7 @@ Route::get('/products/category/{cat_id}', [ProductControllers::class, 'getProduc
 // Category routes
 Route::post('categories', [CategoryController::class, 'creates'])->name('categories.creates');
 Route::get('/categories/{id}', [CategoryController::class, 'show']);
-Route::get('categories', [CategoryController::class, 'GetAll'])->name('categories.GetAll');
+Route::get('getall/categories', [CategoryController::class, 'GetAll'])->name('categories.GetAll');
 Route::put('categories/{id}', [CategoryController::class, 'updates'])->name('categories.updates');
 Route::delete('categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
