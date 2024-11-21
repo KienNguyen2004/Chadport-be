@@ -12,10 +12,8 @@ class Cart_item extends Model
     protected $table = 'cart_item';
     protected $fillable = [
         'id',
-        'user_id', 
         'cart_id',
-        'product_id',
-        'product_variant_id',
+        'product_item_id',
         'quantity',
         'price',
     ];
@@ -31,5 +29,10 @@ class Cart_item extends Model
     public function productVariant()
     {
         return $this->belongsTo(ProductVariant::class);
+    }
+
+    public function productItem()
+    {
+        return $this->belongsTo(ProductItems::class, 'product_item_id', 'id');
     }
 }
