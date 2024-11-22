@@ -9,7 +9,7 @@ class Voucher extends Model
 {
     use HasFactory;
 
-    protected $table = 'voucher';
+    protected $table = 'vouchers';
     protected $fillable = [
         'id',
         'code',

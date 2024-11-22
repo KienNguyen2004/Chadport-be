@@ -65,10 +65,10 @@ Route::post('update/products/{id}', [ProductControllers::class, 'updateProduct']
 Route::get('/products/category/{cat_id}', [ProductControllers::class, 'getProductsByCategory']);
 
 // Category routes
-Route::post('categories', [CategoryController::class, 'creates'])->name('categories.creates');
+Route::post('categories', [CategoryController::class, 'create'])->name('categories.creates');
 Route::get('/categories/{id}', [CategoryController::class, 'show']);
 Route::get('getall/categories', [CategoryController::class, 'GetAll'])->name('categories.GetAll');
-Route::put('categories/{id}', [CategoryController::class, 'updates'])->name('categories.updates');
+Route::put('categories/{id}', [CategoryController::class, 'update'])->name('categories.updates');
 Route::delete('categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
 

@@ -15,23 +15,19 @@ class ProductControllerAD extends Controller
             $search = $request->input('search');
             $time_start = $request->input('time_start');
             $time_end = $request->input('time_end');
-        
+            
             $data = Product::from('products as p')
-                ->select('p.*', 'cat.cat_name', 'b.brand_name', 's.size_name', 'col.col_name')
-                ->leftJoin('categories as cat', 'cat.cat_id', '=', 'p.cat_id')
-                ->leftJoin('brands as b', 'b.brand_id', '=', 'p.brand_id')
-                ->leftJoin('sizes as s', 's.size_id', '=', 'p.size_id')
-                ->leftJoin('colors as col', 'col.col_id', '=', 'p.col_id')
+                ->select('p.*', 'cat.name as category_name', 'b.name as brand_name')
+                ->leftJoin('categories as cat', 'cat.id', '=', 'p.category_id')
+                ->leftJoin('brands as b', 'b.id', '=', 'p.brand_id')
                 ->where('p.status', '!=', 0);
-        
+    
             if ($search) {
                 $data->when($search, function ($query, $search) {
                     $query->where(function ($query) use ($search) {
-                        $query->where('cat.cat_name', 'like', '%'.$search.'%')
-                            ->orWhere('b.brand_name', 'like', '%'.$search.'%')
-                            ->orWhere('s.size_name', 'like', '%'.$search.'%')
-                            ->orWhere('col.col_name', 'like', '%'.$search.'%')
-                            ->orWhere('p.pro_name', 'like', '%'.$search.'%');
+                        $query->where('cat.name', 'like', '%'.$search.'%')
+                            ->orWhere('b.name', 'like', '%'.$search.'%')
+                            ->orWhere('p.name', 'like', '%'.$search.'%');
                     });
                 });
             }
@@ -43,14 +39,14 @@ class ProductControllerAD extends Controller
             } elseif (isset($time_end)) {
                 $data = $data->where('p.created_at', '<=', $time_end);
             }
-        
-            $data = $data->orderBy('p.pro_id', 'DESC')->paginate(20);
-
+            
+            $data = $data->with('productItems')->orderBy('p.id', 'DESC')->paginate(20);
+    
             return response()->json([
                 'message' => 'Data index product',
                 'data' => $data
             ], 201);
-
+    
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'An error occurred while fetching products',

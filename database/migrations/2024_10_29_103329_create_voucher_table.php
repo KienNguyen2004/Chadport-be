@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('voucher', function (Blueprint $table) {
+        Schema::create('vouchers', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('code')->unique(); // mã voucher
             $table->enum('discount_type', ['percentage', 'fixed_amount']); // Loại giảm giá (% hoặc số tiền cố định)
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('voucher');
+        Schema::dropIfExists('vouchers');
     }
 };

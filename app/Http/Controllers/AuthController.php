@@ -29,7 +29,6 @@ class AuthController extends Controller
                 'role_id' => $request->input('role_id'),
                 'status' =>'inactive'
             ];
-            dd($userData);
             $user = User::create($userData);
 
             return response()->json([

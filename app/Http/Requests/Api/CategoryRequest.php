@@ -22,10 +22,10 @@ class CategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'=>['required','string','max:255','unique:categories,cat_name'],
+            'name'=>['required','string','max:255','unique:categories'],
             // 'parent_id'=>['nullable','exists:categories,cat_id'],
             // có thể bỏ trông và nếu thêm thì phải có dữ liệu trong bảnh categories
-            'status'=>['required','boolean'],
+            'status' => ['required', 'in:active,inactive'],
         ];
     }
 }

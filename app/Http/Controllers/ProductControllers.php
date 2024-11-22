@@ -15,7 +15,7 @@ class ProductControllers extends Controller
     {
         // Lấy các dữ liệu đầu vào trừ image_description
         $data = $request->only([
-            'cat_id',
+            'category_id',
             'title',
             'name',
             'status',
@@ -32,7 +32,7 @@ class ProductControllers extends Controller
 
         // Xác thực dữ liệu đầu vào, bao gồm các ảnh trong image_description
         $validated = $request->validate([
-            'cat_id' => 'required|exists:categories,id',
+            'category_id' => 'required|exists:categories,id',
             'title' => 'required|max:255',
             'name' => 'required|max:500',
             'status' => 'required|in:active,inactive',

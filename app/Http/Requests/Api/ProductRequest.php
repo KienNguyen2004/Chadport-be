@@ -25,7 +25,7 @@ class ProductRequest extends FormRequest
             'cat_id' =>['required','exists:categories,cat_id'],
             'title'=>['required','string','max:255','unique:products,title'],
             'name' => ['required','string','max:255','unique:prooducts,pro_name'],
-            'status'=>['required','boolean'],
+            'status' => ['required', 'in:active,inactive'],
             'brand_id'=>['required','exists:brands,brand_id'],
             'description'=>['required','string','max:255'],
             'quantity'=>['required','integer','min:0'],

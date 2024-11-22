@@ -25,27 +25,40 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CategoryRequest $request)
+    public function create (Request $request)
     {
-        if ($request->method('POST')) {
-            $prams = $request->all();
+        $categories_name = $request->input("name");
+        $categories_status = $request->input("status");
+        $categories_imageURL = $request->input("imageURL"); 
 
-            $newCategory = Category::create($prams);
-            return new CategoryResource($newCategory);
+        $validated = $request->validate([
+            'name' => 'required|max:50',
+            'status' => 'required|in:active,inactive', 
+            'imageURL' => 'required|max:255',
+        ]);
+
+        if ($validated) {
+            $categoriess = Category::create([
+            'name' => $categories_name,
+            "status" =>  $categories_status,
+            "imageURL" =>  $categories_imageURL
+            ]);
         }
+
+        return response()->json([
+            'data' => $categoriess
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
         $category = Category::find($id);
-
         if (!$category) {
             return response()->json(['message' => 'Category not found'], 404);
         }
-    
         return response()->json(['data' => $category], 200);
     }
 
@@ -54,30 +67,50 @@ class CategoryController extends Controller
      */
     public function update(CategoryRequest $request, string $id)
     {
-        if ($request->isMethod('PUT')) {
-            $params = $request->all();
-            $category = Category::findOrFail($id);
-            $category->update($params);
-            return new CategoryResource($category);
-        }
-    }
+        // dd(1);
+        $categories_name = $request->input("name");
+        $categories_status = $request->input("status");
+        $categories_imageURL = $request->input("imageURL");
 
+        $validated = $request->validate([
+        'name' => 'required|max:255',
+        'status' => 'required|in:active,inactive',
+        'imageURL' => 'nullable|max:255',
+        ]);
+
+        if ($validated) {
+            $categoriess = Category::where('id', $id)->update([
+                'name' => $categories_name,
+                'status' => $categories_status,
+                'imageURL' => $categories_imageURL,
+            ]);
+
+            return response()->json([
+                'data' => $categoriess
+            ], 201);
+    }
+    }
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Request $request, string $id)
     {
-        $categories_name = $request->input("name");
-        $categories_description = $request->input("description");
+        // Find the category by ID
+        $category = Category::find($id);
 
-        $categoriess = Category::where('id', $id)->delete([
-            'name' => $categories_name,
-            "description" => $categories_description
-        ]);
+        // Check if the category exists
+        if (!$category) {
+            return response()->json([
+                'message' => 'Category not found',
+            ], 404);
+        }
 
-       return response()->json([
-        'message'=>'Xóa thành công',
-        'data' => $categoriess
-       ], 201);
+        // Delete the category
+        $category->delete();
+
+        return response()->json(['message' => 'Xóa thành công',
+            'data' => $category
+        ], 200);
     }
+
 }
