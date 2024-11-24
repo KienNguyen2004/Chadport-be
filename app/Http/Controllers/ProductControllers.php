@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductItems;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,14 +14,12 @@ class ProductControllers extends Controller
 {
     public function createProducts(Request $request)
     {
-        // Lấy các dữ liệu đầu vào trừ image_description
+        // Lấy các dữ liệu đầu vào
         $data = $request->only([
             'category_id',
             'title',
             'name',
             'status',
-            'col_id',
-            'size_id',
             'brand_id',
             'description',
             'quantity',
@@ -28,26 +27,31 @@ class ProductControllers extends Controller
             'price',
             'price_sale',
             'type',
+            'total_quantity',
+            'variants'
         ]);
 
-        // Xác thực dữ liệu đầu vào, bao gồm các ảnh trong image_description
+        // Xác thực dữ liệu đầu vào
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'title' => 'required|max:255',
             'name' => 'required|max:500',
             'status' => 'required|in:active,inactive',
-            'col_id' => 'nullable|exists:colors,id',
-            'size_id' => 'nullable|exists:sizes,id',
-            'brand_id' => 'nullable|exists:brands,id', // Trường này là optional
+            'brand_id' => 'nullable|exists:brands,id',
             'description' => 'nullable|string',
-            'quantity' => 'required|integer|min:0',
+            'quantity' => 'nullable|integer|min:0',
             'image_product' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'image_description' => 'nullable|array',
             'image_description.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'price' => 'required|numeric|min:0',
             'price_sale' => 'nullable|numeric|min:0',
+            'total_quantity' => 'nullable|integer|min:0',
             'type' => 'nullable|string|max:50',
-            
+            'variants' => 'required|array',
+            'variants.*.size_id' => 'required|exists:sizes,id',
+            'variants.*.color_id' => 'required|exists:colors,id',
+            'variants.*.quantity' => 'required|integer|min:0',
+            'variants.*.type' => 'nullable|string|max:255'
         ]);
 
 
@@ -70,15 +74,32 @@ class ProductControllers extends Controller
             $data['image_description'] = json_encode($imagePaths);  // Lưu đường dẫn ảnh dưới dạng JSON
         }
 
-        
+          // Gán giá trị mặc định cho total_quatity nếu không được truyền
+        $data['total_quatity'] = $data['total_quatity'] ?? 0;
 
         // Tạo sản phẩm mới sau khi đã xử lý và xác thực dữ liệu
         $product = Product::create($data);
 
+         // Xử lý lưu biến thể
+        foreach ($validated['variants'] as $variantData) {
+            $variantData['product_id'] = $product->id; // Gắn ID sản phẩm cho biến thể
+
+            // Kiểm tra số lượng tồn kho
+            if ($variantData['quantity'] < 0) {
+                return response()->json([
+                    'message' => 'Variant quantity cannot be negative'
+                ], 422);
+            }
+
+            // Tạo biến thể
+            ProductItems::create($variantData);
+        }
+
         return response()->json([
-            'data' => $product,'imagePaths' => $imagePaths, // Log để kiểm tra
-            'message' => 'Product created with images successfully'
+            'data' => $product->load(['productItems.size', 'productItems.color']), // Load thêm quan hệ size và color
+            'message' => 'Product and variants created successfully'
         ], 201);
+        
     }
 
     public function showProduct(Request $request)

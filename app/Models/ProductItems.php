@@ -24,6 +24,8 @@ class ProductItems extends Model
         'price',
         'price_sale',
         'type',
+        'color_id',          // Add color_id field
+        'size_id',
         'created_at',
         'updated_at',
     ];
@@ -33,5 +35,15 @@ class ProductItems extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id'); // Each product item belongs to a product
+    }
+
+    public function size()
+    {
+        return $this->belongsTo(Size::class, 'size_id');
+    }
+
+    public function color()
+    {
+        return $this->belongsTo(Color::class, 'color_id');
     }
 }

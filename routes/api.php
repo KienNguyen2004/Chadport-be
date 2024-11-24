@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ColorController;
 use App\Http\Controllers\Api\ProductsController;
 use App\Http\Controllers\Api\SizeController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\VariantController;
 use App\Http\Controllers\Api\VoucherController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -70,6 +71,29 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']);
 Route::get('getall/categories', [CategoryController::class, 'GetAll'])->name('categories.GetAll');
 Route::put('categories/{id}', [CategoryController::class, 'update'])->name('categories.updates');
 Route::delete('categories/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+
+// Color routes
+Route::post('colors', [ColorController::class, 'createColor']); // 
+Route::get('colors', [ColorController::class, 'GetAll']); // Lấy tất cả màu sắc
+Route::get('colors/{id}', [ColorController::class, 'getColor']); // Lấy màu sắc theo ID
+Route::put('colors/{id}', [ColorController::class, 'updates']); // Cập nhật màu sắc
+Route::delete('colors/{id}', [ColorController::class, 'deleteColor']); // Xóa màu sắc
+
+// Size routes
+Route::get('/sizes', [SizeController::class, 'GetAll']);
+Route::get('/sizes/{id}', [SizeController::class, 'show']);
+Route::post('/sizes', [SizeController::class, 'creates']); // Đảm bảo có dòng này
+Route::put('/sizes/{id}', [SizeController::class, 'updates']);
+Route::delete('/sizes/{id}', [SizeController::class, 'destroy']);
+
+
+// Variant routes
+Route::post('products/{productId}/variants', [VariantController::class, 'creates']); // Route để tạo mới variant
+Route::get('variants/{id}', [VariantController::class, 'show']); // Route để lấy thông tin variant theo ID
+Route::get('products/{productId}/variants', [VariantController::class, 'GetAll']); // Route để lấy tất cả variants
+Route::put('variants/{id}', [VariantController::class, 'updates']); // Route để cập nhật variant
+Route::delete('variants/{id}', [VariantController::class, 'destroy']); // Route để xóa variant
 
 
 // Brand route
