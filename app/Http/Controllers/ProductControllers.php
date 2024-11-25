@@ -20,7 +20,6 @@ class ProductControllers extends Controller
             'title',
             'name',
             'status',
-            'brand_id',
             'description',
             'quantity',
             'image_product',
@@ -30,14 +29,13 @@ class ProductControllers extends Controller
             'total_quantity',
             'variants'
         ]);
-
+    
         // Xác thực dữ liệu đầu vào
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'title' => 'required|max:255',
             'name' => 'required|max:500',
             'status' => 'required|in:active,inactive',
-            'brand_id' => 'nullable|exists:brands,id',
             'description' => 'nullable|string',
             'quantity' => 'nullable|integer|min:0',
             'image_product' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -47,60 +45,59 @@ class ProductControllers extends Controller
             'price_sale' => 'nullable|numeric|min:0',
             'total_quantity' => 'nullable|integer|min:0',
             'type' => 'nullable|string|max:50',
-            'variants' => 'required|array',
-            'variants.*.size_id' => 'required|exists:sizes,id',
-            'variants.*.color_id' => 'required|exists:colors,id',
-            'variants.*.quantity' => 'required|integer|min:0',
-            'variants.*.type' => 'nullable|string|max:255'
+            'variants' => 'required|string' // Dữ liệu `variants` được yêu cầu là chuỗi JSON
         ]);
-
-
-        $data = $validated;
-        $imagePaths = [];
+    
+        // Giải mã phần `variants`
+        $decodedVariants = json_decode($validated['variants'], true);
+    
+        if (!is_array($decodedVariants)) {
+            return response()->json(['message' => 'Invalid format for variants'], 422);
+        }
+    
         // Lưu ảnh chính của sản phẩm
         if ($request->hasFile('image_product')) {
             $imageProductPath = $request->file('image_product')->store('images', 'public');
-            $data['image_product'] = $imageProductPath; // Lưu đường dẫn ảnh chính
+            $data['image_product'] = $imageProductPath;
         }
-
+    
         // Xử lý việc upload các file và lưu đường dẫn vào mảng
         if ($request->hasFile('image_description')) {
-            $imagePaths = [];  // Khởi tạo mảng để lưu đường dẫn
+            $imagePaths = [];
             foreach ($request->file('image_description') as $file) {
                 $path = $file->store('images', 'public');
-                $imagePaths[] = $path; // Thêm đường dẫn ảnh vào mảng
-                Log::info($file->getClientMimeType());
+                $imagePaths[] = $path;
             }
-            $data['image_description'] = json_encode($imagePaths);  // Lưu đường dẫn ảnh dưới dạng JSON
+            $data['image_description'] = json_encode($imagePaths);
         }
-
-          // Gán giá trị mặc định cho total_quatity nếu không được truyền
-        $data['total_quatity'] = $data['total_quatity'] ?? 0;
-
+    
+        // Gán giá trị mặc định cho `total_quantity` nếu không được truyền
+        $data['total_quantity'] = $data['total_quantity'] ?? 0;
+    
         // Tạo sản phẩm mới sau khi đã xử lý và xác thực dữ liệu
         $product = Product::create($data);
-
-         // Xử lý lưu biến thể
-        foreach ($validated['variants'] as $variantData) {
-            $variantData['product_id'] = $product->id; // Gắn ID sản phẩm cho biến thể
-
-            // Kiểm tra số lượng tồn kho
-            if ($variantData['quantity'] < 0) {
-                return response()->json([
-                    'message' => 'Variant quantity cannot be negative'
-                ], 422);
+    
+        // Xử lý lưu biến thể với nhiều size và color
+        foreach ($decodedVariants as $variantData) {
+            foreach ($variantData['size_id'] as $sizeId) {
+                foreach ($variantData['color_id'] as $colorId) {
+                    ProductItems::create([
+                        'product_id' => $product->id,
+                        'size_id' => $sizeId,
+                        'color_id' => $colorId,
+                        'quantity' => $variantData['quantity'],
+                        'type' => $variantData['type'] ?? null,
+                    ]);
+                }
             }
-
-            // Tạo biến thể
-            ProductItems::create($variantData);
         }
-
+    
         return response()->json([
-            'data' => $product->load(['productItems.size', 'productItems.color']), // Load thêm quan hệ size và color
+            'data' => $product->load(['productItems.size', 'productItems.color']),
             'message' => 'Product and variants created successfully'
         ], 201);
-        
     }
+    
 
     public function showProduct(Request $request)
     {
