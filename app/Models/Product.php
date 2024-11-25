@@ -38,7 +38,7 @@ class Product extends Model
         return $this->belongsTo(Brand::class, 'brand_id'); // Each product belongs to a brand
     }
 
-    public function productItems()
+    public function variants()
     {
         return $this->hasMany(ProductItems::class, 'product_id'); // A product can have multiple product items
     }
