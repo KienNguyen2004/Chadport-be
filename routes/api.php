@@ -1,13 +1,11 @@
 <?php
 
-use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Admin\ProductControllerAD;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ColorController;
-use App\Http\Controllers\Api\ProductsController;
 use App\Http\Controllers\Api\SizeController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\VariantController;
@@ -90,7 +88,7 @@ Route::delete('/sizes/{id}', [SizeController::class, 'destroy']);
 
 // Variant routes
 Route::post('products/{productId}/variants', [VariantController::class, 'creates']); // Route để tạo mới variant
-Route::get('variants/{id}', [VariantController::class, 'show']); // Route để lấy thông tin variant theo ID
+Route::get('productsvariants/{id}', [VariantController::class, 'show']);
 Route::get('products/{productId}/variants', [VariantController::class, 'GetAll']); // Route để lấy tất cả variants
 Route::put('variants/{id}', [VariantController::class, 'updates']); // Route để cập nhật variant
 Route::delete('variants/{id}', [VariantController::class, 'destroy']); // Route để xóa variant

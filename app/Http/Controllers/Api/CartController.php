@@ -143,7 +143,6 @@ class CartController extends Controller
             ], 500);
         }
     }
-    
 
     public function deleteProductCart(Request $request)
     {

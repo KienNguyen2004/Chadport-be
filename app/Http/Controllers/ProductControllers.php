@@ -26,7 +26,7 @@ class ProductControllers extends Controller
             'price',
             'price_sale',
             'type',
-            'total_quantity',
+            'total_quatity',
             'variants'
         ]);
     
@@ -42,8 +42,8 @@ class ProductControllers extends Controller
             'image_description' => 'nullable|array',
             'image_description.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'price' => 'required|numeric|min:0',
-            'price_sale' => 'nullable|numeric|min:0',
-            'total_quantity' => 'nullable|integer|min:0',
+            'price_sale' => 'nullable|numeric|min:0|',
+            'total_quatity' => 'nullable|integer|min:0',
             'type' => 'nullable|string|max:50',
             'variants' => 'required|string' // Dữ liệu `variants` được yêu cầu là chuỗi JSON
         ]);
@@ -55,6 +55,15 @@ class ProductControllers extends Controller
             return response()->json(['message' => 'Invalid format for variants'], 422);
         }
     
+        // Chuyển giá sản phẩm và giá giảm giá thành số nguyên (VND)
+        $price = intval($validated['price']); // Làm tròn giá gốc thành số nguyên
+        $priceSale = isset($validated['price_sale']) ? intval($validated['price_sale']) : 0; // Làm tròn giá giảm giá thành số nguyên
+
+        // Kiểm tra nếu giá giảm lớn hơn giá gốc, trả lỗi
+        if ($priceSale > $price) {
+            return response()->json(['message' => 'Price sale cannot be greater than the original price'], 422);
+        }
+
         // Lưu ảnh chính của sản phẩm
         if ($request->hasFile('image_product')) {
             $imageProductPath = $request->file('image_product')->store('images', 'public');
@@ -72,8 +81,10 @@ class ProductControllers extends Controller
         }
     
         // Gán giá trị mặc định cho `total_quantity` nếu không được truyền
-        $data['total_quantity'] = $data['total_quantity'] ?? 0;
-    
+        $data['total_quatity'] = $data['total_quatity'] ?? 0;
+        $data['price'] = $price; // Gán giá trị cho `price`
+        $data['price_sale'] = $priceSale; // Gán giá trị cho `price_sale`
+
         // Tạo sản phẩm mới sau khi đã xử lý và xác thực dữ liệu
         $product = Product::create($data);
     
@@ -98,7 +109,6 @@ class ProductControllers extends Controller
         ], 201);
     }
     
-
     public function showProduct(Request $request)
     {
         // Số lượng sản phẩm hiển thị trên mỗi trang
@@ -133,9 +143,6 @@ class ProductControllers extends Controller
             'per_page' => $perPage, // Số sản phẩm mỗi trang
         ], 200);
     }
-
-
-
 
     // Phương thức để lấy thông tin chi tiết của sản phẩm theo ID
     public function showDetail($id)

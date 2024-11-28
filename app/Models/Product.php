@@ -21,6 +21,7 @@ class Product extends Model
         'status',           // Enum field for status
         'price',
         'price_sale',
+        'total_quatity',
         'image_product',
         'image_description', // JSON field for image descriptions
         'created_at',
