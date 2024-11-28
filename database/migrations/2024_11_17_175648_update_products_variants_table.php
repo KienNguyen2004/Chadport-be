@@ -6,32 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('product_variants', function (Blueprint $table) {
-            $table->unsignedBigInteger('color_id')->after('product_id'); 
-            $table->unsignedBigInteger('size_id')->after('color_id');
-            
+        Schema::create('product_items', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('color_id');
+            $table->unsignedBigInteger('size_id');
+            $table->text('description')->nullable();
+            $table->integer('quantity')->default(0);
+            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('type', 255)->default('default_type');
+            $table->timestamps();
+
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('color_id')->references('id')->on('colors')->onDelete('cascade');
             $table->foreign('size_id')->references('id')->on('sizes')->onDelete('cascade');
-       
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('product_variants', function (Blueprint $table) {
-            $table->dropForeign(['color_id']);
-            $table->dropForeign(['size_id']);
-
-            $table->dropColumn('color_id');
-            $table->dropColumn('size_id');
-        });
+        Schema::dropIfExists('product_items');
     }
 };

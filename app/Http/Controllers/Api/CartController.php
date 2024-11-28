@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cart_item;
-use App\Models\Product;
 use App\Models\Voucher;
 use Database\Seeders\Voucher_usedSeeder;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\Cart;
+use App\Models\ProductItems;
 
 class CartController extends Controller
 {
@@ -29,101 +30,137 @@ class CartController extends Controller
     public function addToCart(Request $request)
     {
         try {
-            // Xác thực request
             $request->validate([
-                'product_id' => 'required|integer|exists:products,id',
+                'product_item_id' => 'required|integer|exists:product_items,id',
                 'quantity' => 'required|integer|min:1',
             ]);
-
-            // Lấy user đã đăng nhập
+    
             $user = auth()->user();
             if (!$user) {
                 return response()->json(['message' => 'Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng'], 401);
             }
+    
+            $productItem = ProductItems::with('product')->findOrFail($request->product_item_id);
 
-            // Lấy thông tin sản phẩm
-            $product = Product::find($request->product_id);
-            if (!$product || $product->quantity < $request->quantity) {
+            if ($productItem->quantity < $request->quantity) {
                 return response()->json(['message' => 'Sản phẩm không đủ số lượng'], 400);
             }
-            // dd($product);
-            // Lấy hoặc tạo giỏ hàng cho user
-            $cart = Cart_item::firstOrCreate(
-                ['user_id' => $user->id], // Điều kiện để tìm
-                ['created_at' => now(), 'updated_at' => now()] // Nếu không tồn tại, sẽ tạo mới
-            );
-
-            // Kiểm tra xem sản phẩm đã tồn tại trong giỏ chưa
+    
+            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
+    
+            DB::beginTransaction();
+            
             $cartItem = Cart_item::where('cart_id', $cart->id)
-                ->where('product_id', $product->id)
+                ->where('product_item_id', $productItem->id)
                 ->first();
 
             if ($cartItem) {
-                // Nếu đã tồn tại, cập nhật số lượng và giá
                 $newQuantity = $cartItem->quantity + $request->quantity;
 
-                if ($newQuantity > $product->quantity) {
-                    return response()->json(['message' => 'Số lượng sản phẩm đã đạt mức tối đa'], 400);
+                if ($newQuantity > $productItem->quantity) {
+                    throw new \Exception('Số lượng sản phẩm đã đạt mức tối đa');
                 }
 
                 $cartItem->update([
                     'quantity' => $newQuantity,
-                    'price' => $product->price * $newQuantity,
+                    'price' => $productItem->product->price_sale ?  $productItem->product->price_sale * $newQuantity :  $productItem->product->price * $newQuantity,
                 ]);
             } else {
-                // Nếu chưa tồn tại, thêm sản phẩm mới vào giỏ
-                Cart_item::create([
+                $data = [
                     'cart_id' => $cart->id,
-                    'user_id' => $user->id, // Đảm bảo user_id luôn được gán
-                    'product_id' => $product->id,
+                    'product_item_id' =>  $productItem->id,
                     'quantity' => $request->quantity,
-                    'price' => $product->price * $request->quantity,
-                ]);
+                    'price' =>  $productItem->product->price_sale ?  $productItem->product->price_sale * $request->quantity :  $productItem->product->price * $request->quantity ,
+                ];
+                Cart_item::create($data);
             }
+            DB::commit();
 
             return response()->json([
                 'message' => 'Thêm sản phẩm vào giỏ hàng thành công',
             ], 200);
+    
         } catch (\Exception $e) {
+            DB::rollback();
             Log::error('Error adding to cart: ' . $e->getMessage());
-            return response()->json(['message' => 'Đã xảy ra lỗi. Vui lòng thử lại sau.'], 500);
+            return response()->json(['message' => $e->getMessage()], 400);
         }
     }
 
-
-
-    public function get_cart($cartId)
+    public function get_cart()
     {
-        // Lấy các mục giỏ hàng và thông tin liên quan
-        $cartItems = Cart_item::with('productVariant')
-            ->where('cart_id', $cartId)
-            ->get();
+        try {
+            $cart = Cart::where('user_id', auth()->id())
+                ->where('status', 'đang sử dụng')
+                ->first();
     
-        // Tính tổng giá trị giỏ hàng
-        $totalPrice = $cartItems->sum(function ($item) {
-            return $item->quantity * $item->price;
-        });
+            if (!$cart) {
+                return response()->json([
+                    'message' => 'Giỏ hàng trống.',
+                    'cart_items' => [],
+                    'total_price' => 0,
+                ], 200);
+            }
     
-        // Trả về JSON
-        return response()->json([
-            'message' => 'Danh sách các mục trong giỏ hàng.',
-            'cart_items' => $cartItems,
-            'total_price' => $totalPrice,
-        ], 200);
+            $cartItems = Cart_item::with('productItem')
+                ->where('cart_id', $cart->id)
+                ->get();
+    
+            if ($cartItems->isEmpty()) {
+                return response()->json([
+                    'message' => 'Giỏ hàng trống.',
+                    'cart_items' => [],
+                    'total_price' => 0,
+                ], 200);
+            }
+    
+            $totalPrice = $cartItems->sum(function ($item) {
+                return $item->price;
+            });
+    
+            $formattedCartItems = $cartItems->map(function ($item) {
+                return [
+                    'product_item_id' => $item->product_item_id,
+                    'quantity' => $item->quantity,
+                    'total_price' => $item->price,
+                ];
+            });
+
+            $cart->total = $totalPrice;
+            $cart->save();
+    
+            return response()->json([
+                'message' => 'Danh sách các mục trong giỏ hàng.',
+                'cart_id' => $cart->id,
+                'cart_items' => $formattedCartItems,
+                'total_price' => $cart->total,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error retrieving cart: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Đã xảy ra lỗi khi lấy thông tin giỏ hàng.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function deleteProductCart(Request $request)
     {
         try {
-            foreach ($this->cart as $key => $val) {
-                if ($val['product_id'] == $request->product_id) {
-                    unset($this->cart[$key]);
-                }
-            }
-            \Session::put('cart', $this->cart);
-            \Session::save();
-            $this->updateTotalPrice();
+            $cartItem = Cart_item::whereHas('cart', function ($query) use ($request) {
+                $query->where('user_id', auth()->id())
+                      ->where('status', 'đang sử dụng');
+            })
+            ->where('product_item_id', $request->product_item_id)
+            ->first();
 
+            if (!$cartItem) {
+                return response()->json([
+                    'message' => 'Giỏ hàng trống hoặc sản phẩm không có trong giỏ hàng.',
+                ], 404);
+            }
+
+            $cartItem->delete();
             return $this->get_cart();
         } catch (Exception $e) {
             Log::error($e->getMessage());
@@ -133,110 +170,110 @@ class CartController extends Controller
 
     public function updateQuantityCart(Request $request)
     {
-        $product_id = $request->product_id;
-        $option = $request->option;
+        $cart = Cart::where('user_id', auth()->id())
+        ->where('status', 'đang sử dụng')
+        ->first();
 
-        foreach ($this->cart as $key => $val) {
-            if ($val['product_id'] === $product_id) {
-                if ($option === 'down' && $val['product_quantity'] === 1) {
-                    return $this->deleteProductCart($request);
-                }
-    
-                $this->cart[$key]['product_quantity'] += $option === 'up' ? 1 : -1;
-    
-                $this->cart[$key]['cart_amount'] = $this->cart[$key]['cart_price'] * $this->cart[$key]['product_quantity'];
-                $this->cart[$key]['cart_amount_sale'] = $this->cart[$key]['cart_price_sale'] 
-                    ? $this->cart[$key]['cart_price_sale'] * $this->cart[$key]['product_quantity'] 
-                    : $this->cart[$key]['cart_price'] * $this->cart[$key]['product_quantity'];
-    
-                \Session::put('cart', $this->cart);
-                $this->updateTotalPrice();
-                \Session::save();
-    
-                break;
-            }
+        if (!$cart) {
+            return response()->json(['message' => 'Giỏ hàng không tồn tại.'], 404);
         }
+
+        $cartItem = Cart_item::where('cart_id', $cart->id)
+            ->where('product_item_id', $request->product_item_id)
+            ->first();
+
+        if (!$cartItem) {
+            return response()->json(['message' => 'Sản phẩm không có trong giỏ hàng.'], 404);
+        }
+
+        if ($request->option === 'down') {
+            if ($cartItem->quantity === 1) {
+                $cartItem->delete();
+                return response()->json(['message' => 'Sản phẩm đã được xóa khỏi giỏ hàng.']);
+            }
+            $cartItem->decrement('quantity');
+        } elseif ($request->option === 'up') {
+            $cartItem->increment('quantity');
+        }
+    
+        $productItem = ProductItems::with('product')->findOrFail($request->product_item_id);
+        $cartItem->price = $productItem->product->price_sale 
+            ? $productItem->product->price_sale * $cartItem->quantity 
+            : $productItem->product->price * $cartItem->quantity;
+    
+        $cartItem->save();
+
         return $this->get_cart();
     }
 
     public function payment(Request $request)
     {
+        DB::beginTransaction();
         try {
-            DB::beginTransaction();
-
-            $user_id = auth()->user()->user_id;
-            $data_cart = $this->cart;
-            $this->cart = session()->get('cart', []);
-            foreach ($this->cart as $product) {
-                if (is_array($product) && isset($product['product_id'], $product['product_quantity'])) {
-                    $data = Product::find($product['product_id']);
-
-                    if ($data && ($data->quantity == 0 || $data->quantity < intval($product['product_quantity']))) {
-                        $this->deleteSS();
-                        return response()->json([
-                            'message' => 'Đặt hàng thất bại do sản phẩm đã hết hàng hoặc số lượng hàng không đủ'
-                        ], 400);
-                    }
-                }
+            $user_id = auth()->id();
+    
+            $cart = Cart::where('user_id', $user_id)->where('status', 'đang sử dụng')->first();
+    
+            if (!$cart) {
+                return response()->json(['message' => 'Giỏ hàng không hợp lệ.'], 400);
             }
+    
+            $data_cart_items = Cart_item::where('cart_id', $cart->id)->get();
 
-            $orderNumber = 'ORDER-' . strtoupper(uniqid());
-
-            $total_money = \Session::get('total_voucher_cart') ? \Session::get('total_voucher_cart') : \Session::get('total_cart');
-
+            $latestOrder = DB::table('order')->orderBy('id', 'desc')->first();
+            $nextOrderNumber = $latestOrder ? intval(substr($latestOrder->oder_number, 6)) + 1 : 1;
+            $orderNumber = 'order_' . $nextOrderNumber . '_' . $request->input('phone') . '_' . $request->input('email');
+            
             $order = DB::table('order')->insertGetId([
-                'voucher_id' => $this->voucher ? $this->voucher->id : null,
+                'voucher_id' => $cart->voucher_id,
                 'user_id' => $user_id,
-                'oder_number' => $orderNumber,
                 'payment_method' => $request->input('payment_method'),
-                'total_money' => $total_money,
+                'total_money' => $cart->total,
+                'oder_number' => $orderNumber,
                 'shipping_address' => $request->input('shipping_address'),
                 'billing_address' => $request->input('billing_address'),
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
+    
+            $productIds = $data_cart_items->pluck('product_item_id')->toArray();
+            $productDataList = ProductItems::with('product')->whereIn('id', $productIds)->get()->keyBy('id');
 
-            foreach ($data_cart as $product) {
-                if (is_array($product)) {
-                    $productData = Product::find($product['product_id']);
-
-                    $data_order_detail =DB::table('order_detail')->insert([
+            foreach ($data_cart_items as $item) {
+                $productData = $productDataList->get($item->product_item_id);
+                $quantity = intval($item->quantity);
+            
+                if ($productData) {
+                    $price = $productData->product->price_sale ?? $productData->product->price;
+                    $total_price = $quantity * $price;
+            
+                    DB::table('order_detail')->insert([
                         'order_id' => $order,
-                        'product_id' => $product['product_id'],
-                        'quantity' => intval($product['product_quantity']),
-                        'price' => $productData ? $productData->price : 0,
-                        'total_price' => intval($product['product_quantity']) * ($productData->price_sale ? $productData->price_sale : $productData->price),
+                        'product_item_id' => $item->product_item_id,
+                        'quantity' => $quantity,
+                        'price' => $price,
+                        'total_price' => $total_price,
                         'created_at' => now(),
                         'updated_at' => now()
                     ]);
-
-                    if ($productData) {
-                        $productData->quantity -= intval($product['product_quantity']);
-                        $productData->save();
-                    }
+            
+                    // Cập nhật số lượng sản phẩm
+                    $productData->quantity -= $quantity;
+                    $productData->save();
                 }
             }
 
-            if ($this->voucher) {
-                $data_voucher_used = DB::table('vocher_used')->insert([
-                    'voc_id' => $this->voucher->id,
-                    'user_id' => $user_id,
-                    'created_at' => now(),
-                    'expiration_date' => now()->addDays(30),
-                ]);
-            }
-
+            Cart_item::where('cart_id', $cart->id)->delete();
+            $cart->delete();
+    
             DB::commit();
-            $this->deleteSS();
-
-            return response()->json([
-                'message' => 'Đơn hàng của bạn đã được đặt thành công',
-            ], 200);
-
+    
+            return response()->json(['message' => 'Đơn hàng của bạn đã được đặt thành công'], 200);
+    
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Error processing order: " . $e->getMessage());
-
+    
             return response()->json([
                 'message' => 'Đã xảy ra lỗi trong quá trình đặt hàng, vui lòng thử lại sau.',
                 'error' => $e->getMessage()
@@ -247,86 +284,73 @@ class CartController extends Controller
 
     public function addCouponCart(Request $request)
     {
-        $voucher = Voucher::where('id', $request->voucher_id)->first();
+        $request->validate(['voucher_id' => 'required|integer|exists:vouchers,id']);
+    
+        $userId = auth()->id();
+        $voucher = Voucher::find($request->voucher_id);
+    
+        if (!$voucher) {
+            return response()->json(['message' => 'Không tìm thấy voucher.'], 404);
+        }
+    
+        // if (DB::table('voucher_used')->where('voucher_id', $request->voucher_id)->where('user_id', $userId)->exists()) {
+        //     return response()->json(['message' => 'Bạn đã sử dụng voucher này rồi.'], 403);
+        // }
+    
+        $cart = Cart::where('user_id', $userId)->where('status', 'đang sử dụng')->first();
+    
+        if (!$cart) {
+            return response()->json(['message' => 'Giỏ hàng không hợp lệ.'], 400);
+        }
+    
+        $data_cart = $cart->total;
+        $total_cart_voucher = $data_cart;
+    
+        if ($voucher->discount_type === 'percentage') {
+            $price_voucher = $data_cart * $voucher->discount_value / 100;
+            $total_cart_voucher = max($data_cart - $price_voucher, 0);
+        } elseif ($voucher->discount_type === 'fixed_amount') {
+            $total_cart_voucher = max($data_cart - $voucher->discount_value, 0);
+        }
+    
+        $cart->total = $total_cart_voucher;
+        $cart->save();
+    
+        // DB::table('voucher_used')->updateOrInsert(
+        //     ['voucher_id' => $request->voucher_id, 'user_id' => $userId],
+        //     ['created_at' => now()]
+        // );
+    
+        return response()->json(['message' => 'Voucher đã được thêm thành công.', 'total_cart' => $total_cart_voucher], 200);
+    }
+
+    public function removeVoucher(Request $request)
+    {
+        $userId = auth()->id();
+        $cart = Cart::where('user_id', $userId)->where('status', 'đang sử dụng')->first();
+
+        if (!$cart) {
+            return response()->json(['message' => 'Giỏ hàng không hợp lệ.'], 400);
+        }
+
+        $voucher = DB::table('voucher_used')->where('user_id', $userId)->first();
 
         if (!$voucher) {
-            return response()->json([
-                'message' => 'Không tìm thấy voucher',
-            ], 404);
+            return response()->json(['message' => 'Không có voucher nào để xóa.'], 404);
         }
 
-        $check_user_voucher_exists = DB::table('vocher_used')
-            ->where('voc_id', $request->voc_id)
-            ->where('user_id', auth()->user()->user_id)
-            ->exists();
-
-            dd($check_user_voucher_exists);
-        if ($check_user_voucher_exists) {
-            return response()->json([
-                'message' => 'Bạn đã sử dụng voucher này rồi',
-            ], 403);
-        }
-
-        $data_cart = \Session::get('total_cart');
-
-        if (!$data_cart) {
-            return response()->json([
-                'message' => 'Giỏ hàng không hợp lệ',
-            ], 400);
-        }
+        $data_cart = $cart->total;
 
         if ($voucher->discount_type === 'percentage') {
-            $price_voucher = $data_cart* $voucher->discount_value / 100;
-            $total_cart_voucher = $price_voucher >= $data_cart ? 0 : $data_cart - $price_voucher;
-
-            \Session::put('total_voucher_cart', $total_cart_voucher);
-
-            if (!session()->has('voucher')) {
-                \Session::put('voucher', $voucher);
-            } else {
-                return response()->json([
-                    'message' => 'Voucher đã được áp dụng trước đó.',
-                ], 403);
-            }
-        }
-        \Session::save();
-        return response()->json([
-            'message' => 'Voucher đã được thêm thành công.',
-        ], 200);
-    }
-
-    public function removeVoucher()
-    {
-        if (\Session::has('total_voucher_cart')) {
-            \Session::forget('total_voucher_cart');
-            \Session::forget('voucher');
-            return response()->json([
-                'message' => 'Voucher đã được xóa thành công.',
-            ], 200);
+            $price_voucher = $data_cart * $voucher->discount_value / (100 - $voucher->discount_value);
+            $cart->total = $data_cart + $price_voucher;
+        } elseif ($voucher->discount_type === 'fixed_amount') {
+            $cart->total = $data_cart + $voucher->discount_value;
         }
 
-        return response()->json([
-            'message' => 'Không có voucher nào để xóa.',
-        ], 404);
-    }
+        $cart->save();
+        DB::table('voucher_used')->where('user_id', $userId)->delete();
 
-
-    public function deleteSS()
-    {
-        \Session::flush();
-    }
-
-    public function updateTotalPrice()
-    {
-        $total_cart = round(
-            collect($this->cart)
-                ->filter(function($item) {
-                    return isset($item['cart_amount_sale']) && is_numeric($item['cart_amount_sale']);
-                })
-                ->sum('cart_amount_sale'), 
-            2
-        );
-        \Session::put('total_cart', $total_cart);
-        \Session::save();
+        return response()->json(['message' => 'Voucher đã được xóa thành công.'], 200);
     }
 }

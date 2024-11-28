@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('order', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('voucher_id');  
+            $table->unsignedBigInteger('voucher_id')->nullable();
             $table->unsignedBigInteger('user_id');
             $table->foreign('voucher_id')->references('id')->on('voucher')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
