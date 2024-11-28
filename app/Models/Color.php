@@ -15,6 +15,7 @@ class Color extends Model
 
     public function variants()
     {
-        return $this->hasMany(ProductVariant::class, 'col_id');
+        return $this->hasMany(ProductItems::class, 'color_id');
     }
+
 }

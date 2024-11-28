@@ -146,18 +146,20 @@ class ProductControllers extends Controller
 
     // Phương thức để lấy thông tin chi tiết của sản phẩm theo ID
     public function showDetail($id)
-    {
-        // Tìm sản phẩm theo ID
-        $product = Product::find($id);
+{
+    // Tìm Product theo ID và eager load các quan hệ: variants, size, color
+    $product = Product::with('variants.size', 'variants.color')->find($id);
 
-        // Nếu sản phẩm không tồn tại, trả về lỗi 404
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
-
-        // Trả về thông tin sản phẩm dưới dạng JSON
-        return response()->json($product);
+    // Nếu sản phẩm không tồn tại, trả về lỗi 404
+    if (!$product) {
+        return response()->json(['message' => 'Product not found'], 404);
     }
+
+    // Trả về thông tin sản phẩm dưới dạng JSON
+    return response()->json($product);
+}
+
+    
 
     public function updateProduct(Request $request, $id)
     {
